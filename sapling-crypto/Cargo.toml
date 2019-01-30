@@ -17,6 +17,8 @@ bellman = { path = "../bellman" }
 rand = "0.4"
 digest = "0.7"
 byteorder = "1"
+parity-codec-derive = { version = "3.0" }
+parity-codec = { version = "3.0", default-features = false }
 
 [dependencies.blake2-rfc]
 git = "https://github.com/gtank/blake2-rfc"

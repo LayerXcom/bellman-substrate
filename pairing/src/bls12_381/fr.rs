@@ -54,7 +54,7 @@ const ROOT_OF_UNITY: FrRepr = FrRepr([
     0x5bf3adda19e9b27b,
 ]);
 
-#[derive(Copy, Clone, PartialEq, Eq, Default, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Encode, Decode, Default)]
 pub struct FrRepr(pub [u64; 4]);
 
 impl ::rand::Rand for FrRepr {
@@ -243,7 +243,7 @@ impl PrimeFieldRepr for FrRepr {
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Encode, Decode, Default)]
 pub struct Fr(FrRepr);
 
 impl ::std::fmt::Display for Fr {

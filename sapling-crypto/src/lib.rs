@@ -14,7 +14,8 @@ extern crate crypto;
 
 #[macro_use]
 extern crate parity_codec_derive;
-extern crate parity_codec;
+extern crate parity_codec as codec;
+extern crate core;
 
 pub mod jubjub;
 pub mod group_hash;

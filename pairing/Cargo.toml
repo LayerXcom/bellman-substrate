@@ -15,6 +15,10 @@ repository = "https://github.com/ebfull/pairing"
 rand = "0.4"
 byteorder = "1"
 clippy = { version = "0.0.200", optional = true }
+parity-codec-derive = { version = "3.0" }
+parity-codec = { version = "3.0", default-features = false }
+serde = { version = "1.0", optional = true }
+serde_derive = { version = "1.0", optional = true }
 
 [features]
 unstable-features = ["expose-arith"]

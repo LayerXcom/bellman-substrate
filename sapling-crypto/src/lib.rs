@@ -15,6 +15,11 @@ extern crate crypto;
 #[macro_use]
 extern crate parity_codec_derive;
 extern crate parity_codec as codec;
+// #[cfg(feature = "std")]
+// extern crate serde;
+// #[cfg(feature = "std")]
+// #[macro_use]
+// extern crate serde_derive;
 extern crate core;
 
 pub mod jubjub;

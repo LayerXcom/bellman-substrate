@@ -49,10 +49,12 @@ pub mod fs;
 pub mod tests;
 
 /// Point of unknown order.
-pub enum Unknown { }
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Encode, Decode)]
+pub struct Unknown;
 
 /// Point of prime order.
-pub enum PrimeOrder { }
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Encode, Decode)]
+pub struct PrimeOrder;
 
 /// Fixed generators of the Jubjub curve of unknown
 /// exponent.

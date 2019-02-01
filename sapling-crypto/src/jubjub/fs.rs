@@ -5,6 +5,8 @@ use pairing::{adc, sbb, mac_with_carry};
 
 use super::ToUniform;
 
+use codec::{Encode, Decode};
+
 // s = 6554484396890773809930967563523245729705921265872317281365359162392183254199
 const MODULUS: FsRepr = FsRepr([0xd0970e5ed6f72cb7, 0xa6682093ccc81082, 0x6673b0101343b00, 0xe7db4ea6533afa9]);
 
@@ -228,27 +230,10 @@ impl PrimeFieldRepr for FsRepr {
     }
 }
 
-use codec::{Encode, Output};
-// #[cfg(feature = "std")]
-use codec::{Decode, Input};
-
 /// This is an element of the scalar field of the Jubjub curve.
-#[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Default, Encode, Decode)]
 // #[cfg_attr(feature = "std", derive(Debug, Serialize, Deserialize))]
 pub struct Fs(FsRepr);
-
-impl Encode for Fs {
-    fn using_encoded<R, F: FnOnce(&[u8]) -> R>(&self, f: F) -> R {
-		self.0.using_encoded(f)
-	}
-}
-
-impl Decode for Fs {
-    fn decode<I: Input>(input: &mut I) -> Option<Self> {
-        // <[u64; 4] as Decode>::decode(input).map(Fs)
-        unimplemented!()
-    }
-}
 
 impl ::std::fmt::Display for Fs
 {

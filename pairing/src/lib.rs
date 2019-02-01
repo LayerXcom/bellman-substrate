@@ -16,6 +16,15 @@
 extern crate byteorder;
 extern crate rand;
 
+extern crate parity_codec as codec;
+#[macro_use]
+extern crate parity_codec_derive;
+// #[cfg(feature = "std")]
+// extern crate serde;
+// #[cfg(feature = "std")]
+// #[macro_use]
+// extern crate serde_derive;
+
 #[cfg(test)]
 pub mod tests;
 
@@ -28,12 +37,14 @@ use std::error::Error;
 use std::fmt;
 use std::io::{self, Read, Write};
 
+use codec::{Encode, Decode};
+
 /// An "engine" is a collection of types (fields, elliptic curve groups, etc.)
 /// with well-defined relationships. In particular, the G1/G2 curve groups are
 /// of prime order `r`, and are equipped with a bilinear pairing function.
 pub trait Engine: Sized + 'static + Clone {
     /// This is the scalar field of the G1/G2 groups.
-    type Fr: PrimeField + SqrtField;
+    type Fr: PrimeField + SqrtField + Encode + Decode;
 
     /// The projective representation of an element in G1.
     type G1: CurveProjective<
@@ -125,7 +136,7 @@ pub trait CurveProjective:
     + 'static
 {
     type Engine: Engine<Fr = Self::Scalar>;
-    type Scalar: PrimeField + SqrtField;
+    type Scalar: PrimeField + SqrtField + Encode + Decode;
     type Base: SqrtField;
     type Affine: CurveAffine<Projective = Self, Scalar = Self::Scalar>;
 
@@ -186,7 +197,7 @@ pub trait CurveAffine:
     Copy + Clone + Sized + Send + Sync + fmt::Debug + fmt::Display + PartialEq + Eq + 'static
 {
     type Engine: Engine<Fr = Self::Scalar>;
-    type Scalar: PrimeField + SqrtField;
+    type Scalar: PrimeField + SqrtField + Encode + Decode;
     type Base: SqrtField;
     type Projective: CurveProjective<Affine = Self, Scalar = Self::Scalar>;
     type Prepared: Clone + Send + Sync + 'static;

@@ -18,7 +18,12 @@ use rand::{
     Rng
 };
 
-use std::marker::PhantomData;
+// use std::marker::PhantomData;
+use core::marker::PhantomData;
+
+use codec::{Encode, Output};
+// #[cfg(feature = "std")]
+use codec::{Decode, Input};
 
 use std::io::{
     self,
@@ -26,17 +31,40 @@ use std::io::{
     Read
 };
 
+// #[derive(Encode, Decode, Default)]
+pub struct MyPhantomData<Subgroup>(PhantomData<Subgroup>);
+
+// #[cfg(any(feature = "std", feature = "full"))]
+impl<Subgroup> Encode for MyPhantomData<Subgroup> {
+	fn encode_to<W: Output>(&self, _dest: &mut W) {
+	}
+}
+
+// #[cfg(any(feature = "std", feature = "full"))]
+impl<Subgroup> Decode for MyPhantomData<Subgroup> {
+	fn decode<I: Input>(_input: &mut I) -> Option<Self> {
+		Some(MyPhantomData(PhantomData))
+	}
+}
+
+impl<Subgroup> Default for MyPhantomData<Subgroup> {
+    fn default() -> Self {
+        MyPhantomData(PhantomData)
+    }
+}
+
 // Represents the affine point (X/Z, Y/Z) via the extended
 // twisted Edwards coordinates.
 //
 // See "Twisted Edwards Curves Revisited"
 //     Huseyin Hisil, Kenneth Koon-Ho Wong, Gary Carter, and Ed Dawson
+// #[derive(Encode, Decode, Default)]
 pub struct Point<E: JubjubEngine, Subgroup> {
     x: E::Fr,
     y: E::Fr,
     t: E::Fr,
     z: E::Fr,
-    _marker: PhantomData<Subgroup>
+    _marker:  MyPhantomData<Subgroup>
 }
 
 fn convert_subgroup<E: JubjubEngine, S1, S2>(from: &Point<E, S1>) -> Point<E, S2>
@@ -46,7 +74,7 @@ fn convert_subgroup<E: JubjubEngine, S1, S2>(from: &Point<E, S1>) -> Point<E, S2
         y: from.y,
         t: from.t,
         z: from.z,
-        _marker: PhantomData
+        _marker: MyPhantomData(PhantomData)
     }
 }
 
@@ -153,7 +181,7 @@ impl<E: JubjubEngine> Point<E, Unknown> {
                             y: y,
                             t: t,
                             z: E::Fr::one(),
-                            _marker: PhantomData
+                            _marker: MyPhantomData(PhantomData)
                         })
                     },
                     None => None
@@ -248,7 +276,7 @@ impl<E: JubjubEngine, Subgroup> Point<E, Subgroup> {
                         y: neg1,
                         t: E::Fr::zero(),
                         z: E::Fr::one(),
-                        _marker: PhantomData
+                        _marker: MyPhantomData(PhantomData)
                     }
                 } else {
                     // Otherwise, as stated above, the mapping is still
@@ -307,7 +335,7 @@ impl<E: JubjubEngine, Subgroup> Point<E, Subgroup> {
                         y: v,
                         t: t,
                         z: z,
-                        _marker: PhantomData
+                        _marker: MyPhantomData(PhantomData)
                     }
                 }
             }
@@ -330,7 +358,7 @@ impl<E: JubjubEngine, Subgroup> Point<E, Subgroup> {
             y: E::Fr::one(),
             t: E::Fr::zero(),
             z: E::Fr::one(),
-            _marker: PhantomData
+            _marker: MyPhantomData(PhantomData)
         }
     }
 
@@ -422,7 +450,7 @@ impl<E: JubjubEngine, Subgroup> Point<E, Subgroup> {
             y: y3,
             t: t3,
             z: z3,
-            _marker: PhantomData
+            _marker: MyPhantomData(PhantomData)
         }
     }
 
@@ -495,7 +523,7 @@ impl<E: JubjubEngine, Subgroup> Point<E, Subgroup> {
             y: y3,
             t: t3,
             z: z3,
-            _marker: PhantomData
+            _marker: MyPhantomData(PhantomData)
         }
     }
 

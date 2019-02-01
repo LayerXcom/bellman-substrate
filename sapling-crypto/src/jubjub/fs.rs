@@ -37,7 +37,8 @@ const ROOT_OF_UNITY: FsRepr = FsRepr([0xaa9f02ab1d6124de, 0xb3524a6466112932, 0x
 const NEGATIVE_ONE: Fs = Fs(FsRepr([0xaa9f02ab1d6124de, 0xb3524a6466112932, 0x7342261215ac260b, 0x4d6b87b1da259e2]));
 
 /// This is the underlying representation of an element of `Fs`.
-#[derive(Copy, Clone, PartialEq, Eq, Default, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Encode, Decode, Default)]
+// #[cfg_attr(feature = "std", derive(Debug, Serialize, Deserialize))]
 pub struct FsRepr(pub [u64; 4]);
 
 impl ::rand::Rand for FsRepr {
@@ -227,9 +228,27 @@ impl PrimeFieldRepr for FsRepr {
     }
 }
 
+use codec::{Encode, Output};
+// #[cfg(feature = "std")]
+use codec::{Decode, Input};
+
 /// This is an element of the scalar field of the Jubjub curve.
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
+// #[cfg_attr(feature = "std", derive(Debug, Serialize, Deserialize))]
 pub struct Fs(FsRepr);
+
+impl Encode for Fs {
+    fn using_encoded<R, F: FnOnce(&[u8]) -> R>(&self, f: F) -> R {
+		self.0.using_encoded(f)
+	}
+}
+
+impl Decode for Fs {
+    fn decode<I: Input>(input: &mut I) -> Option<Self> {
+        // <[u64; 4] as Decode>::decode(input).map(Fs)
+        unimplemented!()
+    }
+}
 
 impl ::std::fmt::Display for Fs
 {

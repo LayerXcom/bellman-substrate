@@ -33,6 +33,8 @@ use pairing::bls12_381::{
     Fr
 };
 
+use codec::{Encode, Decode};
+
 /// This is an implementation of the twisted Edwards Jubjub curve.
 pub mod edwards;
 
@@ -94,7 +96,7 @@ pub trait ToUniform {
 /// and some pre-computed parameters.
 pub trait JubjubEngine: Engine {
     /// The scalar field of the Jubjub curve
-    type Fs: PrimeField + SqrtField + ToUniform;
+    type Fs: PrimeField + SqrtField + ToUniform + Encode + Decode;
     /// The parameters of Jubjub and the Sapling protocol
     type Params: JubjubParams<Self>;
 }

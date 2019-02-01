@@ -58,7 +58,7 @@ impl<Subgroup> Default for MyPhantomData<Subgroup> {
 //
 // See "Twisted Edwards Curves Revisited"
 //     Huseyin Hisil, Kenneth Koon-Ho Wong, Gary Carter, and Ed Dawson
-#[derive(Encode, Decode, Default)]
+// #[derive(Encode, Decode, Default)]
 pub struct Point<E: JubjubEngine, Subgroup> {
     x: E::Fr,
     y: E::Fr,

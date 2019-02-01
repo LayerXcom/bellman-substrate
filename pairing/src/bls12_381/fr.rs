@@ -1,6 +1,8 @@
 use LegendreSymbol::*;
 use {Field, PrimeField, PrimeFieldDecodingError, PrimeFieldRepr, SqrtField};
 
+use codec::{Encode, Decode};
+
 // r = 52435875175126190479447740508185965837690552500527637822603658699938581184513
 const MODULUS: FrRepr = FrRepr([
     0xffffffff00000001,
@@ -56,25 +58,6 @@ const ROOT_OF_UNITY: FrRepr = FrRepr([
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Encode, Decode, Default)]
 pub struct FrRepr(pub [u64; 4]);
-
-// // #[cfg(any(feature = "std", feature = "full"))]
-// impl Encode for FrRepr {
-// 	fn encode_to<W: Output>(&self, _dest: &mut W) {
-// 	}
-// }
-
-// // #[cfg(any(feature = "std", feature = "full"))]
-// impl Decode for FrRepr {
-// 	fn decode<I: Input>(_input: &mut I) -> Option<Self> {
-// 		Some(FrRepr([0,0,0,0])) // TODO;
-// 	}
-// }
-
-// impl Default for FrRepr {
-//     fn default() -> Self {
-//         FrRepr([0,0,0,0])
-//     }
-// }
 
 impl ::rand::Rand for FrRepr {
     #[inline(always)]
@@ -262,32 +245,8 @@ impl PrimeFieldRepr for FrRepr {
     }
 }
 
-use codec::{Encode, Output};
-// #[cfg(feature = "std")]
-use codec::{Decode, Input};
-
-
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Encode, Decode, Default)]
 pub struct Fr(FrRepr);
-
-// #[cfg(any(feature = "std", feature = "full"))]
-// impl Encode for Fr {
-// 	fn encode_to<W: Output>(&self, _dest: &mut W) {
-// 	}
-// }
-
-// // #[cfg(any(feature = "std", feature = "full"))]
-// impl Decode for Fr {
-// 	fn decode<I: Input>(_input: &mut I) -> Option<Self> {
-// 		Some(Fr(FrRepr::default()))
-// 	}
-// }
-
-// impl Default for Fr {
-//     fn default() -> Self {
-//         Fr(FrRepr::default())
-//     }
-// }
 
 impl ::std::fmt::Display for Fr {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {

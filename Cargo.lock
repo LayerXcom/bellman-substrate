@@ -408,7 +408,7 @@ dependencies = [
  "byteorder 1.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "clippy 0.0.200 (registry+https://github.com/rust-lang/crates.io-index)",
  "parity-codec 3.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "parity-codec-derive 3.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "parity-codec-derive 2.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.75 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.75 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -435,16 +435,6 @@ dependencies = [
 [[package]]
 name = "parity-codec-derive"
 version = "2.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "proc-macro2 0.4.14 (registry+https://github.com/rust-lang/crates.io-index)",
- "quote 0.6.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "syn 0.15.26 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "parity-codec-derive"
-version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "proc-macro2 0.4.14 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -851,7 +841,6 @@ dependencies = [
 "checksum parity-codec 2.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "e7b6a1290fe78aa6bbb5f3338ecede3062687a98b9e40cd1dbcaa47261d44097"
 "checksum parity-codec 3.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "88f69984317b736dceac3baa86600fc089856f69b44b07231f39b5648b02bcd4"
 "checksum parity-codec-derive 2.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "e2632f530f37c8b939c7c194636a82ecbe41ab115e74e88f947ad41e483bbf19"
-"checksum parity-codec-derive 3.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "a58ba33211595f92cc2163ac583961d3dc767e656934146636b05256cc9acd7f"
 "checksum percent-encoding 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "31010dd2e1ac33d5b46a5b413495239882813e0369f8ed8a5e266f173602f831"
 "checksum proc-macro-hack 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "3ba8d4f9257b85eb6cdf13f055cea3190520aab1409ca2ab43493ea4820c25f0"
 "checksum proc-macro-hack-impl 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "d5cb6f960ad471404618e9817c0e5d10b1ae74cfdf01fab89ea0641fe7fb2892"

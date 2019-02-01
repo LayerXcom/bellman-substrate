@@ -136,7 +136,7 @@ pub trait CurveProjective:
     + 'static
 {
     type Engine: Engine<Fr = Self::Scalar>;
-    type Scalar: PrimeField + SqrtField;
+    type Scalar: PrimeField + SqrtField + Encode + Decode;
     type Base: SqrtField;
     type Affine: CurveAffine<Projective = Self, Scalar = Self::Scalar>;
 
@@ -197,7 +197,7 @@ pub trait CurveAffine:
     Copy + Clone + Sized + Send + Sync + fmt::Debug + fmt::Display + PartialEq + Eq + 'static
 {
     type Engine: Engine<Fr = Self::Scalar>;
-    type Scalar: PrimeField + SqrtField;
+    type Scalar: PrimeField + SqrtField + Encode + Decode;
     type Base: SqrtField;
     type Projective: CurveProjective<Affine = Self, Scalar = Self::Scalar>;
     type Prepared: Clone + Send + Sync + 'static;

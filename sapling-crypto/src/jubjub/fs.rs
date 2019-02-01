@@ -5,8 +5,6 @@ use pairing::{adc, sbb, mac_with_carry};
 
 use super::ToUniform;
 
-use codec::{Encode, Decode};
-
 // s = 6554484396890773809930967563523245729705921265872317281365359162392183254199
 const MODULUS: FsRepr = FsRepr([0xd0970e5ed6f72cb7, 0xa6682093ccc81082, 0x6673b0101343b00, 0xe7db4ea6533afa9]);
 

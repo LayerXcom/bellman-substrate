@@ -21,8 +21,6 @@ use rand::{
 use std::marker::PhantomData;
 // use core::marker::PhantomData;
 
-use codec::{Encode, Decode};
-
 use std::io::{
     self,
     Write,

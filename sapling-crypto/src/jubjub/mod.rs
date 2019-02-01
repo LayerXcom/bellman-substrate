@@ -56,6 +56,12 @@ pub struct Unknown;
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Encode, Decode)]
 pub struct PrimeOrder;
 
+impl Default for PrimeOrder {
+    fn default() -> Self {
+        PrimeOrder {}
+    }
+}
+
 /// Fixed generators of the Jubjub curve of unknown
 /// exponent.
 #[derive(Copy, Clone)]

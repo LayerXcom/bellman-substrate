@@ -228,10 +228,27 @@ impl PrimeFieldRepr for FsRepr {
     }
 }
 
+use codec::{Encode, Output};
+// #[cfg(feature = "std")]
+use codec::{Decode, Input};
+
 /// This is an element of the scalar field of the Jubjub curve.
-#[derive(Copy, Clone, PartialEq, Eq, Debug, Encode, Decode)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
 // #[cfg_attr(feature = "std", derive(Debug, Serialize, Deserialize))]
 pub struct Fs(FsRepr);
+
+impl Encode for Fs {
+    fn using_encoded<R, F: FnOnce(&[u8]) -> R>(&self, f: F) -> R {
+		self.0.using_encoded(f)
+	}
+}
+
+impl Decode for Fs {
+    fn decode<I: Input>(input: &mut I) -> Option<Self> {
+        // <[u64; 4] as Decode>::decode(input).map(Fs)
+        unimplemented!()
+    }
+}
 
 impl ::std::fmt::Display for Fs
 {

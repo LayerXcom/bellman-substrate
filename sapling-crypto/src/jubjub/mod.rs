@@ -49,18 +49,18 @@ pub mod fs;
 pub mod tests;
 
 /// Point of unknown order.
-#[derive(Copy, Clone, PartialEq, Eq, Debug, Encode, Decode)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Encode, Decode, Default)]
 pub struct Unknown;
 
 /// Point of prime order.
-#[derive(Copy, Clone, PartialEq, Eq, Debug, Encode, Decode)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Encode, Decode, Default)]
 pub struct PrimeOrder;
 
-impl Default for PrimeOrder {
-    fn default() -> Self {
-        PrimeOrder {}
-    }
-}
+// impl Default for PrimeOrder {
+//     fn default() -> Self {
+//         PrimeOrder {}
+//     }
+// }
 
 /// Fixed generators of the Jubjub curve of unknown
 /// exponent.

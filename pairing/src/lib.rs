@@ -64,7 +64,7 @@ pub trait Engine: Sized + 'static + Clone {
             Pair = Self::G2Affine,
             PairingResult = Self::Fqk,
         >
-        + From<Self::G1>;
+        + From<Self::G1> + Encode + Decode + Default;
 
     /// The projective representation of an element in G2.
     type G2: CurveProjective<
@@ -84,7 +84,7 @@ pub trait Engine: Sized + 'static + Clone {
             Pair = Self::G1Affine,
             PairingResult = Self::Fqk,
         >
-        + From<Self::G2>;
+        + From<Self::G2> + Encode + Decode + Default;
 
     /// The base field that hosts G1.
     type Fq: PrimeField + SqrtField;

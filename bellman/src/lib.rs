@@ -6,6 +6,9 @@ extern crate futures_cpupool;
 extern crate bit_vec;
 extern crate crossbeam;
 extern crate byteorder;
+#[macro_use]
+extern crate parity_codec_derive;
+extern crate parity_codec as codec;
 
 pub mod multicore;
 mod multiexp;

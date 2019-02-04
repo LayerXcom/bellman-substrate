@@ -29,7 +29,7 @@ fn h_star<E: JubjubEngine>(a: &[u8], b: &[u8]) -> E::Fs {
     hash_to_scalar::<E>(b"Zcash_RedJubjubH", a, b)
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Encode, Decode, Default)]
 pub struct Signature {
     rbar: [u8; 32],
     sbar: [u8; 32],

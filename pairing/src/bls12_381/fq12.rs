@@ -5,7 +5,7 @@ use rand::{Rand, Rng};
 use Field;
 
 /// An element of Fq12, represented by c0 + c1 * w.
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Encode, Decode, Default)]
 pub struct Fq12 {
     pub c0: Fq6,
     pub c1: Fq6,

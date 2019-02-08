@@ -4,7 +4,7 @@ use rand::{Rand, Rng};
 use Field;
 
 /// An element of Fq6, represented by c0 + c1 * v + c2 * v^(2).
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Encode, Decode, Default)]
 pub struct Fq6 {
     pub c0: Fq2,
     pub c1: Fq2,

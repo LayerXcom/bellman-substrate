@@ -381,6 +381,7 @@ impl<E: Engine> Parameters<E> {
     }
 }
 
+#[derive(Clone, Encode, Decode, Default)]
 pub struct PreparedVerifyingKey<E: Engine> {
     /// Pairing result of alpha*beta
     alpha_g1_beta_g2: E::Fqk,

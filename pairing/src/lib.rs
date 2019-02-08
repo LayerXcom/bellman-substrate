@@ -93,7 +93,7 @@ pub trait Engine: Sized + 'static + Clone {
     type Fqe: SqrtField;
 
     /// The extension field that hosts the target group of the pairing.
-    type Fqk: Field;
+    type Fqk: Field + Encode + Decode + Default;
 
     /// Perform a miller loop with some number of (G1, G2) pairs.
     fn miller_loop<'a, I>(i: I) -> Self::Fqk
@@ -200,7 +200,7 @@ pub trait CurveAffine:
     type Scalar: PrimeField + SqrtField + Encode + Decode + Default;
     type Base: SqrtField;
     type Projective: CurveProjective<Affine = Self, Scalar = Self::Scalar>;
-    type Prepared: Clone + Send + Sync + 'static;
+    type Prepared: Clone + Send + Sync + 'static + Encode + Decode + Default;
     type Uncompressed: EncodedPoint<Affine = Self>;
     type Compressed: EncodedPoint<Affine = Self>;
     type Pair: CurveAffine<Pair = Self>;

@@ -921,7 +921,7 @@ pub mod g1 {
         }
     }
 
-    #[derive(Clone, Debug)]
+    #[derive(Clone, Debug, Encode, Decode, Default)]
     pub struct G1Prepared(pub(crate) G1Affine);
 
     impl G1Prepared {
@@ -1612,7 +1612,7 @@ pub mod g2 {
         }
     }
 
-    #[derive(Clone, Debug)]
+    #[derive(Clone, Debug, Encode, Decode, Default)]
     pub struct G2Prepared {
         pub(crate) coeffs: Vec<(Fq2, Fq2, Fq2)>,
         pub(crate) infinity: bool,

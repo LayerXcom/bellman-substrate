@@ -12,16 +12,18 @@ use pairing::{
     EncodedPoint
 };
 
-use std::cmp::Ordering;
+use rstd::cmp::Ordering;
+#[cfg(feature = "std")]
 use std::fmt;
 use rand::{Rand, Rng};
-use std::num::Wrapping;
+use rstd::num::Wrapping;
 
 const MODULUS_R: Wrapping<u32> = Wrapping(64513);
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Encode, Decode, Default)]
 pub struct Fr(Wrapping<u32>);
 
+#[cfg(feature = "std")]
 impl fmt::Display for Fr {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         write!(f, "{}", (self.0).0)
@@ -159,6 +161,7 @@ impl Rand for FrRepr {
     }
 }
 
+#[cfg(feature = "std")]
 impl fmt::Display for FrRepr {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         write!(f, "{}", (self.0)[0])
@@ -260,7 +263,7 @@ impl PrimeField for Fr {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Encode, Decode, Default)]
 pub struct DummyEngine;
 
 impl Engine for DummyEngine {

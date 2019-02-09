@@ -1,7 +1,7 @@
 use super::{CurveProjective, PrimeField, PrimeFieldRepr};
 
 /// Replaces the contents of `table` with a w-NAF window table for the given window size.
-pub(crate) fn wnaf_table<G: CurveProjective>(table: &mut Vec<G>, mut base: G, window: usize) {
+pub(crate) fn wnaf_table<'de, G: CurveProjective<'de>>(table: &mut Vec<G>, mut base: G, window: usize) {
     table.truncate(0);
     table.reserve(1 << (window - 1));
 
@@ -46,7 +46,7 @@ pub(crate) fn wnaf_form<S: PrimeFieldRepr>(wnaf: &mut Vec<i64>, mut c: S, window
 ///
 /// This function must be provided a `table` and `wnaf` that were constructed with
 /// the same window size; otherwise, it may panic or produce invalid results.
-pub(crate) fn wnaf_exp<G: CurveProjective>(table: &[G], wnaf: &[i64]) -> G {
+pub(crate) fn wnaf_exp<'de, G: CurveProjective<'de>>(table: &[G], wnaf: &[i64]) -> G {
     let mut result = G::zero();
 
     let mut found_one = false;
@@ -78,7 +78,7 @@ pub struct Wnaf<W, B, S> {
     window_size: W,
 }
 
-impl<G: CurveProjective> Wnaf<(), Vec<G>, Vec<i64>> {
+impl<'de, G: CurveProjective<'de>> Wnaf<(), Vec<G>, Vec<i64>> {
     /// Construct a new wNAF context without allocating.
     pub fn new() -> Self {
         Wnaf {
@@ -110,7 +110,7 @@ impl<G: CurveProjective> Wnaf<(), Vec<G>, Vec<i64>> {
     /// exponentiations with `.base(..)`.
     pub fn scalar(
         &mut self,
-        scalar: <<G as CurveProjective>::Scalar as PrimeField>::Repr,
+        scalar: <<G as CurveProjective<'de>>::Scalar as PrimeField>::Repr,
     ) -> Wnaf<usize, &mut Vec<G>, &[i64]> {
         // Compute the appropriate window size for the scalar.
         let window_size = G::recommended_wnaf_for_scalar(scalar);
@@ -128,7 +128,7 @@ impl<G: CurveProjective> Wnaf<(), Vec<G>, Vec<i64>> {
     }
 }
 
-impl<'a, G: CurveProjective> Wnaf<usize, &'a [G], &'a mut Vec<i64>> {
+impl<'a, 'de, G: CurveProjective<'de>> Wnaf<usize, &'a [G], &'a mut Vec<i64>> {
     /// Constructs new space for the scalar representation while borrowing
     /// the computed window table, for sending the window table across threads.
     pub fn shared(&self) -> Wnaf<usize, &'a [G], Vec<i64>> {
@@ -140,7 +140,7 @@ impl<'a, G: CurveProjective> Wnaf<usize, &'a [G], &'a mut Vec<i64>> {
     }
 }
 
-impl<'a, G: CurveProjective> Wnaf<usize, &'a mut Vec<G>, &'a [i64]> {
+impl<'a, 'de, G: CurveProjective<'de>> Wnaf<usize, &'a mut Vec<G>, &'a [i64]> {
     /// Constructs new space for the window table while borrowing
     /// the computed scalar representation, for sending the scalar representation
     /// across threads.
@@ -153,9 +153,9 @@ impl<'a, G: CurveProjective> Wnaf<usize, &'a mut Vec<G>, &'a [i64]> {
     }
 }
 
-impl<B, S: AsRef<[i64]>> Wnaf<usize, B, S> {
+impl<'de, B, S: AsRef<[i64]>> Wnaf<usize, B, S> {
     /// Performs exponentiation given a base.
-    pub fn base<G: CurveProjective>(&mut self, base: G) -> G
+    pub fn base<G: CurveProjective<'de>>(&mut self, base: G) -> G
     where
         B: AsMut<Vec<G>>,
     {
@@ -164,11 +164,11 @@ impl<B, S: AsRef<[i64]>> Wnaf<usize, B, S> {
     }
 }
 
-impl<B, S: AsMut<Vec<i64>>> Wnaf<usize, B, S> {
+impl<'de, B, S: AsMut<Vec<i64>>> Wnaf<usize, B, S> {
     /// Performs exponentiation given a scalar.
-    pub fn scalar<G: CurveProjective>(
+    pub fn scalar<G: CurveProjective<'de>>(
         &mut self,
-        scalar: <<G as CurveProjective>::Scalar as PrimeField>::Repr,
+        scalar: <<G as CurveProjective<'de>>::Scalar as PrimeField>::Repr,
     ) -> G
     where
         B: AsRef<[G]>,

@@ -507,7 +507,8 @@ pub const NEGATIVE_ONE: Fq = Fq(FqRepr([
     0x40ab3263eff0206,
 ]));
 
-#[derive(Copy, Clone, PartialEq, Eq, Default, Debug, Encode, Decode)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize, Debug))]
+#[derive(Copy, Clone, Encode, Decode, Default, PartialEq, Eq)]
 pub struct FqRepr(pub [u64; 6]);
 
 impl ::rand::Rand for FqRepr {
@@ -517,6 +518,7 @@ impl ::rand::Rand for FqRepr {
     }
 }
 
+#[cfg(feature = "std")]
 impl ::std::fmt::Display for FqRepr {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         try!(write!(f, "0x"));
@@ -696,7 +698,8 @@ impl PrimeFieldRepr for FqRepr {
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, Debug, Encode, Decode, Default)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize, Debug))]
+#[derive(Copy, Clone, Encode, Decode, Default, PartialEq, Eq)]
 pub struct Fq(FqRepr);
 
 /// `Fq` elements are ordered lexicographically.
@@ -714,6 +717,7 @@ impl PartialOrd for Fq {
     }
 }
 
+#[cfg(feature = "std")]
 impl ::std::fmt::Display for Fq {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         write!(f, "Fq({})", self.into_repr())

@@ -27,7 +27,7 @@ const BLS_X_IS_NEGATIVE: bool = true;
 #[derive(Clone, Debug, Encode, Decode, Default)]
 pub struct Bls12;
 
-impl Engine for Bls12 {
+impl<'de> Engine<'de> for Bls12 {
     type Fr = Fr;
     type G1 = G1;
     type G1Affine = G1Affine;
@@ -41,8 +41,8 @@ impl Engine for Bls12 {
     where
         I: IntoIterator<
             Item = &'a (
-                &'a <Self::G1Affine as CurveAffine>::Prepared,
-                &'a <Self::G2Affine as CurveAffine>::Prepared,
+                &'a <Self::G1Affine as CurveAffine<'de>>::Prepared,
+                &'a <Self::G2Affine as CurveAffine<'de>>::Prepared,
             ),
         >,
     {

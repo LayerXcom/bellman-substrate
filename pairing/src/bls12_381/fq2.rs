@@ -5,12 +5,14 @@ use {Field, SqrtField};
 use std::cmp::Ordering;
 
 /// An element of Fq2, represented by c0 + c1 * u.
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Encode, Decode, Default)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize, Debug))]
+#[derive(Copy, Clone, Encode, Decode, Default, PartialEq, Eq)]
 pub struct Fq2 {
     pub c0: Fq,
     pub c1: Fq,
 }
 
+#[cfg(feature = "std")]
 impl ::std::fmt::Display for Fq2 {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         write!(f, "Fq2({} + {} * u)", self.c0, self.c1)

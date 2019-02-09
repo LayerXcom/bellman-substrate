@@ -1,14 +1,30 @@
+#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), feature(alloc))]
+
 extern crate pairing;
 extern crate rand;
+#[cfg(feature = "multithread")]
 extern crate num_cpus;
 extern crate futures;
+#[cfg(feature = "multithread")]
 extern crate futures_cpupool;
 extern crate bit_vec;
+#[cfg(feature = "multithread")]
 extern crate crossbeam;
 extern crate byteorder;
 #[macro_use]
 extern crate parity_codec_derive;
 extern crate parity_codec as codec;
+#[macro_use]
+#[cfg(feature = "std")]
+extern crate serde_derive;
+#[cfg(feature = "std")]
+extern crate serde;
+extern crate sr_std as rstd;
+extern crate sr_io as runtime_io;
+#[macro_use]
+#[cfg(not(feature = "std"))]
+extern crate alloc;
 
 pub mod multicore;
 mod multiexp;
@@ -16,18 +32,24 @@ pub mod domain;
 pub mod groth16;
 
 use pairing::{Engine, Field};
+use rstd::prelude::*;
 
-use std::ops::{Add, Sub};
+use rstd::ops::{Add, Sub};
+#[cfg(feature = "std")]
 use std::fmt;
+#[cfg(feature = "std")]
 use std::error::Error;
+#[cfg(feature = "std")]
 use std::io;
-use std::marker::PhantomData;
+use rstd::marker::PhantomData;
+#[cfg(not(feature = "std"))]
+use alloc::string::String;
 
 /// Computations are expressed in terms of arithmetic circuits, in particular
 /// rank-1 quadratic constraint systems. The `Circuit` trait represents a
 /// circuit that can be synthesized. The `synthesize` method is called during
 /// CRS generation and during proving.
-pub trait Circuit<E: Engine> {
+pub trait Circuit<'de, E: Engine<'de>> {
     /// Synthesize the circuit into a rank-1 quadratic constraint system
     fn synthesize<CS: ConstraintSystem<E>>(
         self,
@@ -64,21 +86,21 @@ pub enum Index {
 /// This represents a linear combination of some variables, with coefficients
 /// in the scalar field of a pairing-friendly elliptic curve group.
 #[derive(Clone)]
-pub struct LinearCombination<E: Engine>(Vec<(Variable, E::Fr)>);
+pub struct LinearCombination<'de, E: Engine<'de>>(Vec<(Variable, E::Fr)>);
 
-impl<E: Engine> AsRef<[(Variable, E::Fr)]> for LinearCombination<E> {
+impl<'de, E: Engine<'de>> AsRef<[(Variable, E::Fr)]> for LinearCombination<E> {
     fn as_ref(&self) -> &[(Variable, E::Fr)] {
         &self.0
     }
 }
 
-impl<E: Engine> LinearCombination<E> {
+impl<'de, E: Engine<'de>> LinearCombination<E> {
     pub fn zero() -> LinearCombination<E> {
         LinearCombination(vec![])
     }
 }
 
-impl<E: Engine> Add<(E::Fr, Variable)> for LinearCombination<E> {
+impl<'de, E: Engine<'de>> Add<(E::Fr, Variable)> for LinearCombination<E> {
     type Output = LinearCombination<E>;
 
     fn add(mut self, (coeff, var): (E::Fr, Variable)) -> LinearCombination<E> {
@@ -88,7 +110,7 @@ impl<E: Engine> Add<(E::Fr, Variable)> for LinearCombination<E> {
     }
 }
 
-impl<E: Engine> Sub<(E::Fr, Variable)> for LinearCombination<E> {
+impl<'de, E: Engine<'de>> Sub<(E::Fr, Variable)> for LinearCombination<E> {
     type Output = LinearCombination<E>;
 
     fn sub(self, (mut coeff, var): (E::Fr, Variable)) -> LinearCombination<E> {
@@ -98,7 +120,7 @@ impl<E: Engine> Sub<(E::Fr, Variable)> for LinearCombination<E> {
     }
 }
 
-impl<E: Engine> Add<Variable> for LinearCombination<E> {
+impl<'de, E: Engine<'de>> Add<Variable> for LinearCombination<E> {
     type Output = LinearCombination<E>;
 
     fn add(self, other: Variable) -> LinearCombination<E> {
@@ -106,7 +128,7 @@ impl<E: Engine> Add<Variable> for LinearCombination<E> {
     }
 }
 
-impl<E: Engine> Sub<Variable> for LinearCombination<E> {
+impl<'de, E: Engine<'de>> Sub<Variable> for LinearCombination<E> {
     type Output = LinearCombination<E>;
 
     fn sub(self, other: Variable) -> LinearCombination<E> {
@@ -114,7 +136,7 @@ impl<E: Engine> Sub<Variable> for LinearCombination<E> {
     }
 }
 
-impl<'a, E: Engine> Add<&'a LinearCombination<E>> for LinearCombination<E> {
+impl<'a, 'de, E: Engine<'de>> Add<&'a LinearCombination<E>> for LinearCombination<E> {
     type Output = LinearCombination<E>;
 
     fn add(mut self, other: &'a LinearCombination<E>) -> LinearCombination<E> {
@@ -126,7 +148,7 @@ impl<'a, E: Engine> Add<&'a LinearCombination<E>> for LinearCombination<E> {
     }
 }
 
-impl<'a, E: Engine> Sub<&'a LinearCombination<E>> for LinearCombination<E> {
+impl<'a, E: Engine<'de>> Sub<&'a LinearCombination<E>> for LinearCombination<E> {
     type Output = LinearCombination<E>;
 
     fn sub(mut self, other: &'a LinearCombination<E>) -> LinearCombination<E> {
@@ -138,7 +160,7 @@ impl<'a, E: Engine> Sub<&'a LinearCombination<E>> for LinearCombination<E> {
     }
 }
 
-impl<'a, E: Engine> Add<(E::Fr, &'a LinearCombination<E>)> for LinearCombination<E> {
+impl<'a, E: Engine<'de>> Add<(E::Fr, &'a LinearCombination<E>)> for LinearCombination<E> {
     type Output = LinearCombination<E>;
 
     fn add(mut self, (coeff, other): (E::Fr, &'a LinearCombination<E>)) -> LinearCombination<E> {
@@ -152,7 +174,7 @@ impl<'a, E: Engine> Add<(E::Fr, &'a LinearCombination<E>)> for LinearCombination
     }
 }
 
-impl<'a, E: Engine> Sub<(E::Fr, &'a LinearCombination<E>)> for LinearCombination<E> {
+impl<'a, E: Engine<'de>> Sub<(E::Fr, &'a LinearCombination<E>)> for LinearCombination<E> {
     type Output = LinearCombination<E>;
 
     fn sub(mut self, (coeff, other): (E::Fr, &'a LinearCombination<E>)) -> LinearCombination<E> {
@@ -181,34 +203,60 @@ pub enum SynthesisError {
     /// During proof generation, we encountered an identity in the CRS
     UnexpectedIdentity,
     /// During proof generation, we encountered an I/O error with the CRS
+    #[cfg(feature = "std")]
     IoError(io::Error),
+    #[cfg(not(feature = "std"))]
+    IoError,
     /// During verification, our verifying key was malformed.
     MalformedVerifyingKey,
     /// During CRS generation, we observed an unconstrained auxillary variable
     UnconstrainedVariable
 }
 
-impl From<io::Error> for SynthesisError {
-    fn from(e: io::Error) -> SynthesisError {
-        SynthesisError::IoError(e)
-    }
-}
-
-impl Error for SynthesisError {
-    fn description(&self) -> &str {
+impl SynthesisError {
+    #[inline]
+    fn description_str(&self) -> &'static str {
         match *self {
             SynthesisError::AssignmentMissing => "an assignment for a variable could not be computed",
             SynthesisError::DivisionByZero => "division by zero",
             SynthesisError::Unsatisfiable => "unsatisfiable constraint system",
             SynthesisError::PolynomialDegreeTooLarge => "polynomial degree is too large",
             SynthesisError::UnexpectedIdentity => "encountered an identity element in the CRS",
+            #[cfg(feature = "std")]
             SynthesisError::IoError(_) => "encountered an I/O error",
+            #[cfg(not(feature = "std"))]
+            SynthesisError::IoError => "encountered an I/O error",
             SynthesisError::MalformedVerifyingKey => "malformed verifying key",
             SynthesisError::UnconstrainedVariable => "auxillary variable was unconstrained"
         }
     }
 }
 
+#[cfg(feature = "std")]
+impl From<io::Error> for SynthesisError {
+    fn from(e: io::Error) -> SynthesisError {
+        SynthesisError::IoError(e)
+    }
+}
+
+#[cfg(feature = "std")]
+impl Error for SynthesisError {
+    fn description(&self) -> &str {
+        self.description_str()
+        // match *self {
+        //     SynthesisError::AssignmentMissing => "an assignment for a variable could not be computed",
+        //     SynthesisError::DivisionByZero => "division by zero",
+        //     SynthesisError::Unsatisfiable => "unsatisfiable constraint system",
+        //     SynthesisError::PolynomialDegreeTooLarge => "polynomial degree is too large",
+        //     SynthesisError::UnexpectedIdentity => "encountered an identity element in the CRS",
+        //     SynthesisError::IoError(_) => "encountered an I/O error",
+        //     SynthesisError::MalformedVerifyingKey => "malformed verifying key",
+        //     SynthesisError::UnconstrainedVariable => "auxillary variable was unconstrained"
+        // }
+    }
+}
+
+#[cfg(feature = "std")]
 impl fmt::Display for SynthesisError {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         if let &SynthesisError::IoError(ref e) = self {
@@ -222,7 +270,7 @@ impl fmt::Display for SynthesisError {
 
 /// Represents a constraint system which can have new variables
 /// allocated and constrains between them formed.
-pub trait ConstraintSystem<E: Engine>: Sized {
+pub trait ConstraintSystem<E: Engine<'de>>: Sized {
     /// Represents the type of the "root" of this constraint system
     /// so that nested namespaces can minimize indirection.
     type Root: ConstraintSystem<E>;
@@ -294,9 +342,9 @@ pub trait ConstraintSystem<E: Engine>: Sized {
 
 /// This is a "namespaced" constraint system which borrows a constraint system (pushing
 /// a namespace context) and, when dropped, pops out of the namespace context.
-pub struct Namespace<'a, E: Engine, CS: ConstraintSystem<E> + 'a>(&'a mut CS, PhantomData<E>);
+pub struct Namespace<'a, E: Engine<'de>, CS: ConstraintSystem<E> + 'a>(&'a mut CS, PhantomData<E>);
 
-impl<'cs, E: Engine, CS: ConstraintSystem<E>> ConstraintSystem<E> for Namespace<'cs, E, CS> {
+impl<'cs, E: Engine<'de>, CS: ConstraintSystem<E>> ConstraintSystem<E> for Namespace<'cs, E, CS> {
     type Root = CS::Root;
 
     fn one() -> Variable {
@@ -359,7 +407,7 @@ impl<'cs, E: Engine, CS: ConstraintSystem<E>> ConstraintSystem<E> for Namespace<
     }
 }
 
-impl<'a, E: Engine, CS: ConstraintSystem<E>> Drop for Namespace<'a, E, CS> {
+impl<'a, E: Engine<'de>, CS: ConstraintSystem<E>> Drop for Namespace<'a, E, CS> {
     fn drop(&mut self) {
         self.get_root().pop_namespace()
     }
@@ -367,7 +415,7 @@ impl<'a, E: Engine, CS: ConstraintSystem<E>> Drop for Namespace<'a, E, CS> {
 
 /// Convenience implementation of ConstraintSystem<E> for mutable references to
 /// constraint systems.
-impl<'cs, E: Engine, CS: ConstraintSystem<E>> ConstraintSystem<E> for &'cs mut CS {
+impl<'cs, E: Engine<'de>, CS: ConstraintSystem<E>> ConstraintSystem<E> for &'cs mut CS {
     type Root = CS::Root;
 
     fn one() -> Variable {

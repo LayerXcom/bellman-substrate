@@ -5,12 +5,14 @@ use rand::{Rand, Rng};
 use Field;
 
 /// An element of Fq12, represented by c0 + c1 * w.
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Encode, Decode, Default)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize, Debug))]
+#[derive(Copy, Clone, Encode, Decode, Default, PartialEq, Eq)]
 pub struct Fq12 {
     pub c0: Fq6,
     pub c1: Fq6,
 }
 
+#[cfg(feature = "std")]
 impl ::std::fmt::Display for Fq12 {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         write!(f, "Fq12({} + {} * w)", self.c0, self.c1)

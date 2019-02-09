@@ -8,10 +8,18 @@ use ::{
     SynthesisError
 };
 
-use multiexp::SourceBuilder;
-use std::io::{self, Read, Write};
+#[cfg(feature = "std")]
 use std::sync::Arc;
+#[cfg(not(feature = "std"))]
+use alloc::sync::Arc;
+
+
+#[cfg(feature = "std")]
+use std::io::{self, Read, Write};
+
+use multiexp::SourceBuilder;
 use byteorder::{BigEndian, WriteBytesExt, ReadBytesExt};
+use rstd::prelude::*;
 
 #[cfg(test)]
 mod tests;
@@ -24,7 +32,8 @@ pub use self::generator::*;
 pub use self::prover::*;
 pub use self::verifier::*;
 
-#[derive(Clone, Encode, Decode, Default)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize, Debug))]
+#[derive(Clone, Encode, Decode, Default, Eq)]
 pub struct Proof<E: Engine> {
     pub a: E::G1Affine,
     pub b: E::G2Affine,
@@ -39,6 +48,7 @@ impl<E: Engine> PartialEq for Proof<E> {
     }
 }
 
+#[cfg(feature = "std")]
 impl<E: Engine> Proof<E> {
     pub fn write<W: Write>(
         &self,
@@ -137,6 +147,7 @@ impl<E: Engine> PartialEq for VerifyingKey<E> {
     }
 }
 
+#[cfg(feature = "std")]
 impl<E: Engine> VerifyingKey<E> {
     pub fn write<W: Write>(
         &self,
@@ -248,6 +259,7 @@ impl<E: Engine> PartialEq for Parameters<E> {
     }
 }
 
+#[cfg(feature = "std")]
 impl<E: Engine> Parameters<E> {
     pub fn write<W: Write>(
         &self,
@@ -381,14 +393,15 @@ impl<E: Engine> Parameters<E> {
     }
 }
 
-#[derive(Clone, Encode, Decode, Default)]
-pub struct PreparedVerifyingKey<E: Engine> {
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize, Debug))]
+#[derive(Clone, Encode, Decode, Default, PartialEq, Eq)]
+pub struct PreparedVerifyingKey<'de, E: Engine> {
     /// Pairing result of alpha*beta
     alpha_g1_beta_g2: E::Fqk,
     /// -gamma in G2
-    neg_gamma_g2: <E::G2Affine as CurveAffine>::Prepared,
+    neg_gamma_g2: <E::G2Affine as CurveAffine<'de>>::Prepared,
     /// -delta in G2
-    neg_delta_g2: <E::G2Affine as CurveAffine>::Prepared,
+    neg_delta_g2: <E::G2Affine as CurveAffine<'de>>::Prepared,
     /// Copy of IC from `VerifiyingKey`.
     ic: Vec<E::G1Affine>
 }

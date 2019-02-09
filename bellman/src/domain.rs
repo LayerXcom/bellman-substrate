@@ -10,6 +10,10 @@
 //! This allows us to perform polynomial operations in O(n)
 //! by performing an O(n log n) FFT over such a domain.
 
+#[cfg(not(feature = "std"))]
+use alloc::string::String;
+use rstd::prelude::*;
+
 use pairing::{
     Engine,
     Field,
@@ -23,7 +27,7 @@ use super::{
 
 use super::multicore::Worker;
 
-pub struct EvaluationDomain<E: Engine, G: Group<E>> {
+pub struct EvaluationDomain<'de, E: Engine<'de>, G: Group<E>> {
     coeffs: Vec<G>,
     exp: u32,
     omega: E::Fr,
@@ -32,7 +36,7 @@ pub struct EvaluationDomain<E: Engine, G: Group<E>> {
     minv: E::Fr
 }
 
-impl<E: Engine, G: Group<E>> EvaluationDomain<E, G> {
+impl<'de, E: Engine<'de>, G: Group<E>> EvaluationDomain<'de, E, G> {
     pub fn as_ref(&self) -> &[G] {
         &self.coeffs
     }
@@ -189,30 +193,30 @@ impl<E: Engine, G: Group<E>> EvaluationDomain<E, G> {
     }
 }
 
-pub trait Group<E: Engine>: Sized + Copy + Clone + Send + Sync {
+pub trait Group<'de, E: Engine<'de>>: Sized + Copy + Clone + Send + Sync {
     fn group_zero() -> Self;
     fn group_mul_assign(&mut self, by: &E::Fr);
     fn group_add_assign(&mut self, other: &Self);
     fn group_sub_assign(&mut self, other: &Self);
 }
 
-pub struct Point<G: CurveProjective>(pub G);
+pub struct Point<'de, G: CurveProjective<'de>>(pub G);
 
-impl<G: CurveProjective> PartialEq for Point<G> {
-    fn eq(&self, other: &Point<G>) -> bool {
+impl<G: CurveProjective> PartialEq for Point<'de, G> {
+    fn eq(&self, other: &Point<'de, G>) -> bool {
         self.0 == other.0
     }
 }
 
-impl<G: CurveProjective> Copy for Point<G> { }
+impl<G: CurveProjective> Copy for Point<'de, G> { }
 
-impl<G: CurveProjective> Clone for Point<G> {
+impl<G: CurveProjective> Clone for Point<'de, G> {
     fn clone(&self) -> Point<G> {
         *self
     }
 }
 
-impl<G: CurveProjective> Group<G::Engine> for Point<G> {
+impl<'de, G: CurveProjective> Group<G::Engine<'de>> for Point<'de, G> {
     fn group_zero() -> Self {
         Point(G::zero())
     }
@@ -464,7 +468,8 @@ fn fft_composition() {
 fn parallel_fft_consistency() {
     use pairing::bls12_381::Bls12;
     use rand::{self, Rand};
-    use std::cmp::min;
+    use rstd::prelude::*;
+    use rstd::cmp::min;
 
     fn test_consistency<E: Engine, R: rand::Rng>(rng: &mut R)
     {

@@ -144,7 +144,7 @@ macro_rules! curve_impl {
             }
         }
 
-        impl CurveAffine for $affine {
+        impl<'de> CurveAffine<'de> for $affine {
             type Engine = Bls12;
             type Scalar = $scalarfield;
             type Base = $basefield;
@@ -213,7 +213,7 @@ macro_rules! curve_impl {
             }
         }
 
-        impl CurveProjective for $projective {
+        impl <'de>CurveProjective<'de> for $projective {
             type Engine = Bls12;
             type Scalar = $scalarfield;
             type Base = $basefield;
@@ -663,7 +663,7 @@ pub mod g1 {
         }
     }
 
-    impl EncodedPoint for G1Uncompressed {
+    impl<'de> EncodedPoint<'de> for G1Uncompressed {
         type Affine = G1Affine;
 
         fn empty() -> Self {
@@ -773,7 +773,7 @@ pub mod g1 {
         }
     }
 
-    impl EncodedPoint for G1Compressed {
+    impl<'de> EncodedPoint<'de> for G1Compressed {
         type Affine = G1Affine;
 
         fn empty() -> Self {
@@ -1310,7 +1310,7 @@ pub mod g2 {
         }
     }
 
-    impl EncodedPoint for G2Uncompressed {
+    impl<'de> EncodedPoint<'de> for G2Uncompressed {
         type Affine = G2Affine;
 
         fn empty() -> Self {
@@ -1436,7 +1436,7 @@ pub mod g2 {
         }
     }
 
-    impl EncodedPoint for G2Compressed {
+    impl<'de> EncodedPoint<'de> for G2Compressed {
         type Affine = G2Affine;
 
         fn empty() -> Self {

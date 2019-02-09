@@ -6,10 +6,15 @@ use pairing::{
     Field,
     PrimeFieldRepr
 };
+use rstd::prelude::*;
+#[cfg(feature = "std")]
 use std::sync::Arc;
+#[cfg(not(feature = "std"))]
+use alloc::sync::Arc;
+#[cfg(feature = "std")]
 use std::io;
 use bit_vec::{self, BitVec};
-use std::iter;
+use rstd::iter;
 use futures::{Future};
 use super::multicore::Worker;
 
@@ -23,7 +28,7 @@ pub trait SourceBuilder<G: CurveAffine>: Send + Sync + 'static + Clone {
 }
 
 /// A source of bases, like an iterator.
-pub trait Source<G: CurveAffine> {
+pub trait Source<'de, G: CurveAffine<'de>> {
     /// Parses the element from the source. Fails if the point is at infinity.
     fn add_assign_mixed(&mut self, to: &mut <G as CurveAffine>::Projective) -> Result<(), SynthesisError>;
 
@@ -31,7 +36,7 @@ pub trait Source<G: CurveAffine> {
     fn skip(&mut self, amt: usize) -> Result<(), SynthesisError>;
 }
 
-impl<G: CurveAffine> SourceBuilder<G> for (Arc<Vec<G>>, usize) {
+impl<'de, G: CurveAffine<'de>> SourceBuilder<G> for (Arc<Vec<G>>, usize) {
     type Source = (Arc<Vec<G>>, usize);
 
     fn new(self) -> (Arc<Vec<G>>, usize) {
@@ -39,10 +44,13 @@ impl<G: CurveAffine> SourceBuilder<G> for (Arc<Vec<G>>, usize) {
     }
 }
 
-impl<G: CurveAffine> Source<G> for (Arc<Vec<G>>, usize) {
+impl<'de, G: CurveAffine<'de>> Source<'de, G> for (Arc<Vec<G>>, usize) {
     fn add_assign_mixed(&mut self, to: &mut <G as CurveAffine>::Projective) -> Result<(), SynthesisError> {
         if self.0.len() <= self.1 {
+            #[cfg(feature = "std")]
             return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "expected more bases from source").into());
+            #[cfg(not(feature = "std"))]
+            return Err(SynthesisError::IoError);
         }
 
         if self.0[self.1].is_zero() {
@@ -58,7 +66,10 @@ impl<G: CurveAffine> Source<G> for (Arc<Vec<G>>, usize) {
 
     fn skip(&mut self, amt: usize) -> Result<(), SynthesisError> {
         if self.0.len() <= self.1 {
+            #[cfg(feature = "std")]
             return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "expected more bases from source").into());
+            #[cfg(not(feature = "std"))]
+            return Err(SynthesisError::IoError);
         }
 
         self.1 += amt;
@@ -137,7 +148,7 @@ impl DensityTracker {
     }
 }
 
-fn multiexp_inner<Q, D, G, S>(
+fn multiexp_inner<'de, Q, D, G, S>(
     pool: &Worker,
     bases: S,
     density_map: D,
@@ -145,10 +156,10 @@ fn multiexp_inner<Q, D, G, S>(
     mut skip: u32,
     c: u32,
     handle_trivial: bool
-) -> Box<Future<Item=<G as CurveAffine>::Projective, Error=SynthesisError>>
+) -> Box<Future<Item=<G as CurveAffine<'de>>::Projective, Error=SynthesisError>>
     where for<'a> &'a Q: QueryDensity,
           D: Send + Sync + 'static + Clone + AsRef<Q>,
-          G: CurveAffine,
+          G: CurveAffine<'de>,
           S: SourceBuilder<G>
 {
     // Perform this region of the multiexp
@@ -165,10 +176,10 @@ fn multiexp_inner<Q, D, G, S>(
             let mut bases = bases.new();
 
             // Create space for the buckets
-            let mut buckets = vec![<G as CurveAffine>::Projective::zero(); (1 << c) - 1];
+            let mut buckets = vec![<G as CurveAffine<'de>>::Projective::zero(); (1 << c) - 1];
 
-            let zero = <G::Engine as Engine>::Fr::zero().into_repr();
-            let one = <G::Engine as Engine>::Fr::one().into_repr();
+            let zero = <G::Engine as Engine<'de>>::Fr::zero().into_repr();
+            let one = <G::Engine as Engine<'de>>::Fr::one().into_repr();
 
             // Sort the bases into buckets
             for (&exp, density) in exponents.iter().zip(density_map.as_ref().iter()) {
@@ -211,7 +222,7 @@ fn multiexp_inner<Q, D, G, S>(
 
     skip += c;
 
-    if skip >= <G::Engine as Engine>::Fr::NUM_BITS {
+    if skip >= <G::Engine as Engine<'de>>::Fr::NUM_BITS {
         // There isn't another region.
         Box::new(this)
     } else {
@@ -234,15 +245,15 @@ fn multiexp_inner<Q, D, G, S>(
 
 /// Perform multi-exponentiation. The caller is responsible for ensuring the
 /// query size is the same as the number of exponents.
-pub fn multiexp<Q, D, G, S>(
+pub fn multiexp<'de, Q, D, G, S>(
     pool: &Worker,
     bases: S,
     density_map: D,
     exponents: Arc<Vec<<<G::Engine as Engine>::Fr as PrimeField>::Repr>>
-) -> Box<Future<Item=<G as CurveAffine>::Projective, Error=SynthesisError>>
+) -> Box<Future<Item=<G as CurveAffine<'de>>::Projective, Error=SynthesisError>>
     where for<'a> &'a Q: QueryDensity,
           D: Send + Sync + 'static + Clone + AsRef<Q>,
-          G: CurveAffine,
+          G: CurveAffine<'de>,
           S: SourceBuilder<G>
 {
     let c = if exponents.len() < 32 {
@@ -263,7 +274,7 @@ pub fn multiexp<Q, D, G, S>(
 
 #[test]
 fn test_with_bls12() {
-    fn naive_multiexp<G: CurveAffine>(
+    fn naive_multiexp<'de, G: CurveAffine<'de>>(
         bases: Arc<Vec<G>>,
         exponents: Arc<Vec<<G::Scalar as PrimeField>::Repr>>
     ) -> G::Projective

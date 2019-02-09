@@ -19,11 +19,11 @@ extern crate rand;
 extern crate parity_codec as codec;
 #[macro_use]
 extern crate parity_codec_derive;
-// #[cfg(feature = "std")]
-// extern crate serde;
-// #[cfg(feature = "std")]
-// #[macro_use]
-// extern crate serde_derive;
+#[cfg(feature = "std")]
+extern crate serde;
+#[cfg(feature = "std")]
+#[macro_use]
+extern crate serde_derive;
 
 #[cfg(test)]
 pub mod tests;
@@ -37,17 +37,22 @@ use std::error::Error;
 use std::fmt;
 use std::io::{self, Read, Write};
 
+#[cfg(feature = "std")]
+use serde::{Serialize, Deserialize};
+#[cfg(feature = "std")]
+use std::fmt::Debug;
 use codec::{Encode, Decode};
 
 /// An "engine" is a collection of types (fields, elliptic curve groups, etc.)
 /// with well-defined relationships. In particular, the G1/G2 curve groups are
 /// of prime order `r`, and are equipped with a bilinear pairing function.
-pub trait Engine: Sized + 'static + Clone {
+pub trait Engine<'de>: Sized + 'static + Clone {
     /// This is the scalar field of the G1/G2 groups.
     type Fr: PrimeField + SqrtField + Encode + Decode + Default;
 
     /// The projective representation of an element in G1.
     type G1: CurveProjective<
+            'de,    
             Engine = Self,
             Base = Self::Fq,
             Scalar = Self::Fr,
@@ -57,6 +62,7 @@ pub trait Engine: Sized + 'static + Clone {
 
     /// The affine representation of an element in G1.
     type G1Affine: CurveAffine<
+            'de,
             Engine = Self,
             Base = Self::Fq,
             Scalar = Self::Fr,
@@ -68,6 +74,7 @@ pub trait Engine: Sized + 'static + Clone {
 
     /// The projective representation of an element in G2.
     type G2: CurveProjective<
+            'de,
             Engine = Self,
             Base = Self::Fqe,
             Scalar = Self::Fr,
@@ -77,6 +84,7 @@ pub trait Engine: Sized + 'static + Clone {
 
     /// The affine representation of an element in G2.
     type G2Affine: CurveAffine<
+            'de,
             Engine = Self,
             Base = Self::Fqe,
             Scalar = Self::Fr,
@@ -93,15 +101,18 @@ pub trait Engine: Sized + 'static + Clone {
     type Fqe: SqrtField;
 
     /// The extension field that hosts the target group of the pairing.
-    type Fqk: Field + Encode + Decode + Default;
+    #[cfg(not(feature = "std"))]
+    type Fqk: Field + Encode + Decode + Default + Clone + Eq + PartialEq;
+    #[cfg(feature = "std")]
+    type Fqk: Field + Encode + Decode + Default + Clone + Eq + PartialEq + Serialize + Deserialize<'de> + Debug;
 
     /// Perform a miller loop with some number of (G1, G2) pairs.
     fn miller_loop<'a, I>(i: I) -> Self::Fqk
     where
         I: IntoIterator<
             Item = &'a (
-                &'a <Self::G1Affine as CurveAffine>::Prepared,
-                &'a <Self::G2Affine as CurveAffine>::Prepared,
+                &'a <Self::G1Affine as CurveAffine<'de>>::Prepared,
+                &'a <Self::G2Affine as CurveAffine<'de>>::Prepared,
             ),
         >;
 
@@ -122,7 +133,7 @@ pub trait Engine: Sized + 'static + Clone {
 
 /// Projective representation of an elliptic curve point guaranteed to be
 /// in the correct prime order subgroup.
-pub trait CurveProjective:
+pub trait CurveProjective<'de>:
     PartialEq
     + Eq
     + Sized
@@ -135,10 +146,10 @@ pub trait CurveProjective:
     + rand::Rand
     + 'static
 {
-    type Engine: Engine<Fr = Self::Scalar>;
+    type Engine: Engine<'de, Fr = Self::Scalar>;
     type Scalar: PrimeField + SqrtField + Encode + Decode + Default;
     type Base: SqrtField;
-    type Affine: CurveAffine<Projective = Self, Scalar = Self::Scalar>;
+    type Affine: CurveAffine<'de, Projective = Self, Scalar = Self::Scalar>;
 
     /// Returns the additive identity.
     fn zero() -> Self;
@@ -193,17 +204,17 @@ pub trait CurveProjective:
 
 /// Affine representation of an elliptic curve point guaranteed to be
 /// in the correct prime order subgroup.
-pub trait CurveAffine:
+pub trait CurveAffine<'de>:
     Copy + Clone + Sized + Send + Sync + fmt::Debug + fmt::Display + PartialEq + Eq + 'static
 {
-    type Engine: Engine<Fr = Self::Scalar>;
+    type Engine: Engine<'de, Fr = Self::Scalar>;
     type Scalar: PrimeField + SqrtField + Encode + Decode + Default;
     type Base: SqrtField;
-    type Projective: CurveProjective<Affine = Self, Scalar = Self::Scalar>;
+    type Projective: CurveProjective<'de, Affine = Self, Scalar = Self::Scalar>;
     type Prepared: Clone + Send + Sync + 'static + Encode + Decode + Default;
-    type Uncompressed: EncodedPoint<Affine = Self>;
-    type Compressed: EncodedPoint<Affine = Self>;
-    type Pair: CurveAffine<Pair = Self>;
+    type Uncompressed: EncodedPoint<'de, Affine = Self>;
+    type Compressed: EncodedPoint<'de, Affine = Self>;
+    type Pair: CurveAffine<'de, Pair = Self>;
     type PairingResult: Field;
 
     /// Returns the additive identity.
@@ -245,10 +256,10 @@ pub trait CurveAffine:
 }
 
 /// An encoded elliptic curve point, which should essentially wrap a `[u8; N]`.
-pub trait EncodedPoint:
+pub trait EncodedPoint<'de>:
     Sized + Send + Sync + AsRef<[u8]> + AsMut<[u8]> + Clone + Copy + 'static
 {
-    type Affine: CurveAffine;
+    type Affine: CurveAffine<'de>;
 
     /// Creates an empty representation.
     fn empty() -> Self;

@@ -4,13 +4,15 @@ use rand::{Rand, Rng};
 use Field;
 
 /// An element of Fq6, represented by c0 + c1 * v + c2 * v^(2).
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Encode, Decode, Default)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize, Debug))]
+#[derive(Copy, Clone, Encode, Decode, Default, PartialEq, Eq)]
 pub struct Fq6 {
     pub c0: Fq2,
     pub c1: Fq2,
     pub c2: Fq2,
 }
 
+#[cfg(feature = "std")]
 impl ::std::fmt::Display for Fq6 {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         write!(f, "Fq6({} + {} * v, {} * v^2)", self.c0, self.c1, self.c2)

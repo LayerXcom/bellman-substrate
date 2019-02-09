@@ -393,7 +393,7 @@ impl<E: Engine> Parameters<E> {
     }
 }
 
-// #[cfg_attr(feature = "std", derive(Debug))]
+#[cfg_attr(feature = "std", derive(Debug))]
 #[derive(Clone, Encode, Decode, Default, PartialEq, Eq)]
 pub struct PreparedVerifyingKey<E: Engine> {
     /// Pairing result of alpha*beta

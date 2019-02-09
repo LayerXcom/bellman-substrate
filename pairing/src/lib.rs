@@ -1,6 +1,9 @@
 // `clippy` is a code linting tool for improving code quality by catching
 // common mistakes or strange code patterns. If the `clippy` feature is
 // provided, it is enabled and all compiler warnings are prohibited.
+#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), feature(alloc))]
+
 #![cfg_attr(feature = "clippy", deny(warnings))]
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
@@ -33,8 +36,11 @@ pub mod bls12_381;
 mod wnaf;
 pub use self::wnaf::Wnaf;
 
+#[cfg(feature = "std")]
 use std::error::Error;
-use std::fmt;
+#[cfg(feature = "std")]
+use std::fmt::{self, Debug};
+#[cfg(feature = "std")]
 use std::io::{self, Read, Write};
 
 use codec::{Encode, Decode};
@@ -200,6 +206,9 @@ pub trait CurveAffine:
     type Scalar: PrimeField + SqrtField + Encode + Decode + Default;
     type Base: SqrtField;
     type Projective: CurveProjective<Affine = Self, Scalar = Self::Scalar>;
+    #[cfg(feature = "std")]
+    type Prepared: Clone + Send + Sync + 'static + Encode + Decode + Default + PartialEq + Eq + Debug;
+    #[cfg(not(feature = "std"))]
     type Prepared: Clone + Send + Sync + 'static + Encode + Decode + Default + PartialEq + Eq;
     type Uncompressed: EncodedPoint<Affine = Self>;
     type Compressed: EncodedPoint<Affine = Self>;
@@ -458,6 +467,7 @@ pub enum PrimeFieldDecodingError {
     NotInField(String),
 }
 
+#[cfg(feature = "std")]
 impl Error for PrimeFieldDecodingError {
     fn description(&self) -> &str {
         match *self {
@@ -466,6 +476,7 @@ impl Error for PrimeFieldDecodingError {
     }
 }
 
+#[cfg(feature = "std")]
 impl fmt::Display for PrimeFieldDecodingError {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match *self {
@@ -491,6 +502,7 @@ pub enum GroupDecodingError {
     UnexpectedInformation,
 }
 
+#[cfg(feature = "std")]
 impl Error for GroupDecodingError {
     fn description(&self) -> &str {
         match *self {
@@ -505,6 +517,7 @@ impl Error for GroupDecodingError {
     }
 }
 
+#[cfg(feature = "std")]
 impl fmt::Display for GroupDecodingError {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match *self {

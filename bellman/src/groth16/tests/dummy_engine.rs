@@ -15,15 +15,39 @@ use pairing::{
 use rstd::cmp::Ordering;
 #[cfg(feature = "std")]
 use std::fmt;
+#[cfg(not(feature = "std"))]
+use core::fmt;
 use rand::{Rand, Rng};
 use rstd::num::Wrapping;
+use codec::{Encode, Decode, Input, Output};
 
 const MODULUS_R: Wrapping<u32> = Wrapping(64513);
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Encode, Decode, Default)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Default)]
 pub struct Fr(Wrapping<u32>);
 
+impl Encode for Fr {
+    fn using_encoded<R, F: FnOnce(&[u8]) -> R>(&self, f: F) -> R {
+		// self.0.using_encoded(f)
+        unimplemented!()
+	}
+}
+
+// TODO: Implement Decode
+impl Decode for Fr {
+    fn decode<I: Input>(input: &mut I) -> Option<Self> {
+        None
+    }
+}
+
 #[cfg(feature = "std")]
+impl fmt::Display for Fr {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(f, "{}", (self.0).0)
+    }
+}
+
+#[cfg(not(feature = "std"))]
 impl fmt::Display for Fr {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         write!(f, "{}", (self.0).0)
@@ -162,6 +186,13 @@ impl Rand for FrRepr {
 }
 
 #[cfg(feature = "std")]
+impl fmt::Display for FrRepr {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(f, "{}", (self.0)[0])
+    }
+}
+
+#[cfg(not(feature = "std"))]
 impl fmt::Display for FrRepr {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         write!(f, "{}", (self.0)[0])

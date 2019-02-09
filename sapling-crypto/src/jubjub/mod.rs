@@ -142,6 +142,8 @@ impl JubjubEngine for Bls12 {
     type Params = JubjubBls12;
 }
 
+#[cfg_attr(feature = "std", derive(Debug))]
+#[derive(Clone, Encode, Decode, Default)]
 pub struct JubjubBls12 {
     edwards_d: Fr,
     montgomery_a: Fr,

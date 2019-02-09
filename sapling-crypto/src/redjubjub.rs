@@ -29,6 +29,7 @@ fn h_star<E: JubjubEngine>(a: &[u8], b: &[u8]) -> E::Fs {
     hash_to_scalar::<E>(b"Zcash_RedJubjubH", a, b)
 }
 
+#[cfg_attr(feature = "std", derive(Debug))]
 #[derive(Copy, Clone, Encode, Decode, Default)]
 pub struct Signature {
     rbar: [u8; 32],
@@ -37,6 +38,7 @@ pub struct Signature {
 
 pub struct PrivateKey<E: JubjubEngine>(pub E::Fs);
 
+#[cfg_attr(feature = "std", derive(Debug))]
 #[derive(Clone, Encode, Decode, Default)]
 pub struct PublicKey<E: JubjubEngine>(pub Point<E, Unknown>);
 

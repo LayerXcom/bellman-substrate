@@ -19,42 +19,24 @@ use rand::{
 };
 
 use std::marker::PhantomData;
-// use core::marker::PhantomData;
 
+#[cfg(feature = "std")]
 use std::io::{
     self,
     Write,
     Read
 };
 
-// // #[derive(Encode, Decode, Default)]
-// pub struct MyPhantomData<Subgroup>(PhantomData<Subgroup>);
-
-// // #[cfg(any(feature = "std", feature = "full"))]
-// impl<Subgroup> Encode for MyPhantomData<Subgroup> {
-// 	fn encode_to<W: Output>(&self, _dest: &mut W) {
-// 	}
-// }
-
-// // #[cfg(any(feature = "std", feature = "full"))]
-// impl<Subgroup> Decode for MyPhantomData<Subgroup> {
-// 	fn decode<I: Input>(_input: &mut I) -> Option<Self> {
-// 		Some(MyPhantomData(PhantomData))
-// 	}
-// }
-
-// impl<Subgroup> Default for MyPhantomData<Subgroup> {
-//     fn default() -> Self {
-//         MyPhantomData(PhantomData)
-//     }
-// }
+#[cfg(feature = "std")]
+use std::fmt::Debug;
 
 // Represents the affine point (X/Z, Y/Z) via the extended
 // twisted Edwards coordinates.
 //
 // See "Twisted Edwards Curves Revisited"
 //     Huseyin Hisil, Kenneth Koon-Ho Wong, Gary Carter, and Ed Dawson
-#[derive(Encode, Decode, Default)]
+#[cfg_attr(feature = "std", derive(Debug))]
+#[derive(Clone, Encode, Decode, Default)]
 pub struct Point<E: JubjubEngine, Subgroup> {
     x: E::Fr,
     y: E::Fr,

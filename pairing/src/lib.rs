@@ -406,8 +406,10 @@ pub trait PrimeFieldRepr:
 
     /// Performs a leftwise bitshift of this number by some amount.
     fn shl(&mut self, amt: u32);
+    
 
     /// Writes this `PrimeFieldRepr` as a big endian integer.
+    #[cfg(feature = "std")]
     fn write_be<W: Write>(&self, mut writer: W) -> io::Result<()> {
         use byteorder::{BigEndian, WriteBytesExt};
 
@@ -416,7 +418,7 @@ pub trait PrimeFieldRepr:
         }
 
         Ok(())
-    }
+    }    
 
     /// Reads a big endian integer into this representation.
     fn read_be<R: Read>(&mut self, mut reader: R) -> io::Result<()> {

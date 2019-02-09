@@ -64,6 +64,7 @@ impl ::rand::Rand for FrRepr {
     }
 }
 
+#[cfg(feature = "std")]
 impl ::std::fmt::Display for FrRepr {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         try!(write!(f, "0x"));
@@ -246,6 +247,7 @@ impl PrimeFieldRepr for FrRepr {
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Encode, Decode, Default)]
 pub struct Fr(FrRepr);
 
+#[cfg(feature = "std")]
 impl ::std::fmt::Display for Fr {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         write!(f, "Fr({})", self.into_repr())

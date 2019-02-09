@@ -8,10 +8,18 @@ use ::{
     SynthesisError
 };
 
-use multiexp::SourceBuilder;
-use std::io::{self, Read, Write};
+#[cfg(feature = "std")]
 use std::sync::Arc;
+#[cfg(not(feature = "std"))]
+use alloc::sync::Arc;
+
+
+#[cfg(feature = "std")]
+use std::io::{self, Read, Write};
+
+use multiexp::SourceBuilder;
 use byteorder::{BigEndian, WriteBytesExt, ReadBytesExt};
+use rstd::prelude::*;
 
 #[cfg(test)]
 mod tests;
@@ -24,7 +32,8 @@ pub use self::generator::*;
 pub use self::prover::*;
 pub use self::verifier::*;
 
-#[derive(Clone, Encode, Decode, Default)]
+#[cfg_attr(feature = "std", derive(Debug))]
+#[derive(Clone, Encode, Decode, Default, Eq)]
 pub struct Proof<E: Engine> {
     pub a: E::G1Affine,
     pub b: E::G2Affine,
@@ -39,6 +48,7 @@ impl<E: Engine> PartialEq for Proof<E> {
     }
 }
 
+#[cfg(feature = "std")]
 impl<E: Engine> Proof<E> {
     pub fn write<W: Write>(
         &self,
@@ -137,6 +147,7 @@ impl<E: Engine> PartialEq for VerifyingKey<E> {
     }
 }
 
+#[cfg(feature = "std")]
 impl<E: Engine> VerifyingKey<E> {
     pub fn write<W: Write>(
         &self,
@@ -248,6 +259,7 @@ impl<E: Engine> PartialEq for Parameters<E> {
     }
 }
 
+#[cfg(feature = "std")]
 impl<E: Engine> Parameters<E> {
     pub fn write<W: Write>(
         &self,
@@ -381,7 +393,8 @@ impl<E: Engine> Parameters<E> {
     }
 }
 
-#[derive(Clone, Encode, Decode, Default)]
+// #[cfg_attr(feature = "std", derive(Debug))]
+#[derive(Clone, Encode, Decode, Default, PartialEq, Eq)]
 pub struct PreparedVerifyingKey<E: Engine> {
     /// Pairing result of alpha*beta
     alpha_g1_beta_g2: E::Fqk,

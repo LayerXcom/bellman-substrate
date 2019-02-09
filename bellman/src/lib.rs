@@ -1,14 +1,30 @@
+#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), feature(alloc))]
+
 extern crate pairing;
 extern crate rand;
+#[cfg(feature = "multithread")]
 extern crate num_cpus;
 extern crate futures;
+#[cfg(feature = "multithread")]
 extern crate futures_cpupool;
 extern crate bit_vec;
+#[cfg(feature = "multithread")]
 extern crate crossbeam;
 extern crate byteorder;
 #[macro_use]
 extern crate parity_codec_derive;
 extern crate parity_codec as codec;
+#[macro_use]
+#[cfg(feature = "std")]
+extern crate serde_derive;
+#[cfg(feature = "std")]
+extern crate serde;
+extern crate sr_std as rstd;
+extern crate sr_io as runtime_io;
+#[macro_use]
+#[cfg(not(feature = "std"))]
+extern crate alloc;
 
 pub mod multicore;
 mod multiexp;
@@ -16,12 +32,18 @@ pub mod domain;
 pub mod groth16;
 
 use pairing::{Engine, Field};
+use rstd::prelude::*;
 
-use std::ops::{Add, Sub};
+use rstd::ops::{Add, Sub};
+#[cfg(feature = "std")]
 use std::fmt;
+#[cfg(feature = "std")]
 use std::error::Error;
+#[cfg(feature = "std")]
 use std::io;
-use std::marker::PhantomData;
+use rstd::marker::PhantomData;
+#[cfg(not(feature = "std"))]
+use alloc::string::String;
 
 /// Computations are expressed in terms of arithmetic circuits, in particular
 /// rank-1 quadratic constraint systems. The `Circuit` trait represents a
@@ -181,34 +203,60 @@ pub enum SynthesisError {
     /// During proof generation, we encountered an identity in the CRS
     UnexpectedIdentity,
     /// During proof generation, we encountered an I/O error with the CRS
+    #[cfg(feature = "std")]
     IoError(io::Error),
+    #[cfg(not(feature = "std"))]
+    IoError,
     /// During verification, our verifying key was malformed.
     MalformedVerifyingKey,
     /// During CRS generation, we observed an unconstrained auxillary variable
     UnconstrainedVariable
 }
 
-impl From<io::Error> for SynthesisError {
-    fn from(e: io::Error) -> SynthesisError {
-        SynthesisError::IoError(e)
-    }
-}
-
-impl Error for SynthesisError {
-    fn description(&self) -> &str {
+impl SynthesisError {
+    #[inline]
+    fn description_str(&self) -> &'static str {
         match *self {
             SynthesisError::AssignmentMissing => "an assignment for a variable could not be computed",
             SynthesisError::DivisionByZero => "division by zero",
             SynthesisError::Unsatisfiable => "unsatisfiable constraint system",
             SynthesisError::PolynomialDegreeTooLarge => "polynomial degree is too large",
             SynthesisError::UnexpectedIdentity => "encountered an identity element in the CRS",
+            #[cfg(feature = "std")]
             SynthesisError::IoError(_) => "encountered an I/O error",
+            #[cfg(not(feature = "std"))]
+            SynthesisError::IoError => "encountered an I/O error",
             SynthesisError::MalformedVerifyingKey => "malformed verifying key",
             SynthesisError::UnconstrainedVariable => "auxillary variable was unconstrained"
         }
     }
 }
 
+#[cfg(feature = "std")]
+impl From<io::Error> for SynthesisError {
+    fn from(e: io::Error) -> SynthesisError {
+        SynthesisError::IoError(e)
+    }
+}
+
+#[cfg(feature = "std")]
+impl Error for SynthesisError {
+    fn description(&self) -> &str {
+        self.description_str()
+        // match *self {
+        //     SynthesisError::AssignmentMissing => "an assignment for a variable could not be computed",
+        //     SynthesisError::DivisionByZero => "division by zero",
+        //     SynthesisError::Unsatisfiable => "unsatisfiable constraint system",
+        //     SynthesisError::PolynomialDegreeTooLarge => "polynomial degree is too large",
+        //     SynthesisError::UnexpectedIdentity => "encountered an identity element in the CRS",
+        //     SynthesisError::IoError(_) => "encountered an I/O error",
+        //     SynthesisError::MalformedVerifyingKey => "malformed verifying key",
+        //     SynthesisError::UnconstrainedVariable => "auxillary variable was unconstrained"
+        // }
+    }
+}
+
+#[cfg(feature = "std")]
 impl fmt::Display for SynthesisError {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         if let &SynthesisError::IoError(ref e) = self {

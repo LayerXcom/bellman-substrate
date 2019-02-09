@@ -1,6 +1,13 @@
 use rand::Rng;
 
+#[cfg(feature = "std")]
 use std::sync::Arc;
+#[cfg(not(feature = "std"))]
+use alloc::sync::Arc;
+
+#[cfg(not(feature = "std"))]
+use alloc::string::String;
+use rstd::prelude::*;
 
 use pairing::{
     Engine,

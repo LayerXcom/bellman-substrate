@@ -12,16 +12,28 @@ homepage = "https://github.com/ebfull/pairing"
 repository = "https://github.com/ebfull/pairing"
 
 [dependencies]
-rand = "0.4"
-byteorder = "1"
+rand = { version = "0.4", default-features = false }
+byteorder = { version = "1", default-features = false }
 clippy = { version = "0.0.200", optional = true }
-parity-codec-derive = { version = "3.0" }
-parity-codec = { version = "3.0" }
-serde = { version = "1.0", optional = true }
+parity-codec-derive = { version = "3.0", default-features = false }
+parity-codec = { version = "3.0", default-features = false }
+serde = { version = "1.0", optional = true, default-features = false }
 serde_derive = { version = "1.0", optional = true }
+sr-std = { git = "https://github.com/paritytech/substrate", default-features = false }
+sr-io = { git = "https://github.com/paritytech/substrate", default-features = false }
 
 [features]
 unstable-features = ["expose-arith"]
 expose-arith = []
 u128-support = []
-default = []
+default = ["std"]
+std = [
+    "rand/std",
+    "byteorder/std",
+    "parity-codec/std",
+    "parity-codec-derive/std",    
+    "serde/std",
+    "serde_derive",
+    "sr-std/std",
+    "sr-io/std",
+]

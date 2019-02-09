@@ -10,6 +10,10 @@
 //! This allows us to perform polynomial operations in O(n)
 //! by performing an O(n log n) FFT over such a domain.
 
+#[cfg(not(feature = "std"))]
+use alloc::string::String;
+use rstd::prelude::*;
+
 use pairing::{
     Engine,
     Field,
@@ -464,7 +468,8 @@ fn fft_composition() {
 fn parallel_fft_consistency() {
     use pairing::bls12_381::Bls12;
     use rand::{self, Rand};
-    use std::cmp::min;
+    use rstd::prelude::*;
+    use rstd::cmp::min;
 
     fn test_consistency<E: Engine, R: rand::Rng>(rng: &mut R)
     {

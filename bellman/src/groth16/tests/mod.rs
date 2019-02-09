@@ -6,8 +6,8 @@ use pairing::{
 
 mod dummy_engine;
 use self::dummy_engine::*;
-
-use std::marker::PhantomData;
+use rstd::prelude::*;
+use rstd::marker::PhantomData;
 
 use ::{
     Circuit,

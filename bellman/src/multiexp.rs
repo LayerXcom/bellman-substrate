@@ -6,10 +6,15 @@ use pairing::{
     Field,
     PrimeFieldRepr
 };
+use rstd::prelude::*;
+#[cfg(feature = "std")]
 use std::sync::Arc;
+#[cfg(not(feature = "std"))]
+use alloc::sync::Arc;
+#[cfg(feature = "std")]
 use std::io;
 use bit_vec::{self, BitVec};
-use std::iter;
+use rstd::iter;
 use futures::{Future};
 use super::multicore::Worker;
 
@@ -42,7 +47,10 @@ impl<G: CurveAffine> SourceBuilder<G> for (Arc<Vec<G>>, usize) {
 impl<G: CurveAffine> Source<G> for (Arc<Vec<G>>, usize) {
     fn add_assign_mixed(&mut self, to: &mut <G as CurveAffine>::Projective) -> Result<(), SynthesisError> {
         if self.0.len() <= self.1 {
+            #[cfg(feature = "std")]
             return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "expected more bases from source").into());
+            #[cfg(not(feature = "std"))]
+            return Err(SynthesisError::IoError);
         }
 
         if self.0[self.1].is_zero() {
@@ -58,7 +66,10 @@ impl<G: CurveAffine> Source<G> for (Arc<Vec<G>>, usize) {
 
     fn skip(&mut self, amt: usize) -> Result<(), SynthesisError> {
         if self.0.len() <= self.1 {
+            #[cfg(feature = "std")]
             return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "expected more bases from source").into());
+            #[cfg(not(feature = "std"))]
+            return Err(SynthesisError::IoError);
         }
 
         self.1 += amt;

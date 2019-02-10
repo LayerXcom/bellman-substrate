@@ -624,11 +624,14 @@ pub mod g1 {
     use super::super::{Bls12, Fq, Fq12, FqRepr, Fr, FrRepr};
     use super::g2::G2Affine;
     use rand::{Rand, Rng};
+    #[cfg(feature = "std")]
     use std::fmt;
     use {
         BitIterator, CurveAffine, CurveProjective, EncodedPoint, Engine, Field, GroupDecodingError,
         PrimeField, PrimeFieldRepr, SqrtField,
     };
+    #[cfg(not(feature = "std"))]
+    use core::result::Result;
 
     curve_impl!(
         "G1",
@@ -684,6 +687,8 @@ pub mod g1 {
             }
         }
         fn into_affine_unchecked(&self) -> Result<G1Affine, GroupDecodingError> {
+            #[cfg(not(feature = "std"))]
+            use core::result::Result;
             // Create a copy of this representation.
             let mut copy = self.0;
 
@@ -735,6 +740,8 @@ pub mod g1 {
             }
         }
         fn from_affine(affine: G1Affine) -> Self {
+            #[cfg(not(feature = "std"))]
+            use core::result::Result;
             let mut res = Self::empty();
 
             if affine.is_zero() {
@@ -794,6 +801,8 @@ pub mod g1 {
             }
         }
         fn into_affine_unchecked(&self) -> Result<G1Affine, GroupDecodingError> {
+            #[cfg(not(feature = "std"))]
+            use core::result::Result;
             // Create a copy of this representation.
             let mut copy = self.0;
 
@@ -1271,11 +1280,14 @@ pub mod g2 {
     use super::super::{Bls12, Fq, Fq12, Fq2, FqRepr, Fr, FrRepr};
     use super::g1::G1Affine;
     use rand::{Rand, Rng};
+    #[cfg(feature = "std")]
     use std::fmt;
     use {
         BitIterator, CurveAffine, CurveProjective, EncodedPoint, Engine, Field, GroupDecodingError,
         PrimeField, PrimeFieldRepr, SqrtField,
     };
+    #[cfg(not(feature = "std"))]
+    use core::result::Result;
 
     curve_impl!(
         "G2",
@@ -1331,6 +1343,8 @@ pub mod g2 {
             }
         }
         fn into_affine_unchecked(&self) -> Result<G2Affine, GroupDecodingError> {
+            #[cfg(not(feature = "std"))]
+            use core::result::Result;
             // Create a copy of this representation.
             let mut copy = self.0;
 
@@ -1396,6 +1410,8 @@ pub mod g2 {
             }
         }
         fn from_affine(affine: G2Affine) -> Self {
+            #[cfg(not(feature = "std"))]
+            use core::result::Result;
             let mut res = Self::empty();
 
             if affine.is_zero() {
@@ -1457,6 +1473,8 @@ pub mod g2 {
             }
         }
         fn into_affine_unchecked(&self) -> Result<G2Affine, GroupDecodingError> {
+            #[cfg(not(feature = "std"))]
+            use core::result::Result;
             // Create a copy of this representation.
             let mut copy = self.0;
 
@@ -1508,6 +1526,8 @@ pub mod g2 {
             }
         }
         fn from_affine(affine: G2Affine) -> Self {
+            #[cfg(not(feature = "std"))]
+            use core::result::Result;
             let mut res = Self::empty();
 
             if affine.is_zero() {

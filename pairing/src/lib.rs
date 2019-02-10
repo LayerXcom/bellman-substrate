@@ -42,6 +42,8 @@ use std::error::Error;
 use std::fmt::{self, Debug};
 #[cfg(feature = "std")]
 use std::io::{self, Read, Write};
+#[cfg(not(feature = "std"))]
+use core::result::Result;
 
 use codec::{Encode, Decode};
 
@@ -354,6 +356,49 @@ pub trait SqrtField: Field {
     fn sqrt(&self) -> Option<Self>;
 }
 
+#[derive(Debug)]
+pub enum IoError {
+    Error,
+}
+
+impl IoError {
+    #[inline]
+    fn description_str(&self) -> &'static str {
+        match *self {            
+            // #[cfg(feature = "std")]
+            // IoError::IoError(_) => "encountered an I/O error",
+            // #[cfg(not(feature = "std"))]
+            IoError::Error => "encountered an I/O error",            
+        }
+    }
+}
+
+// #[cfg(feature = "std")]
+// impl From<io::Error> for IoError {
+//     fn from(e: io::Error) -> IoError {
+//         IoError::IoError(e)
+//     }
+// }
+
+// #[cfg(feature = "std")]
+// impl Error for IoError {
+//     fn description(&self) -> &str {
+//         self.description_str()        
+//     }
+// }
+
+// #[cfg(feature = "std")]
+// impl fmt::Display for IoError {
+//     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+//         if let &IoError::IoError(ref e) = self {
+//             write!(f, "I/O error: ")?;
+//             e.fmt(f)
+//         } else {
+//             write!(f, "{}", self.description())
+//         }
+//     }
+// }
+
 /// This trait represents a wrapper around a biginteger which can encode any element of a particular
 /// prime field. It is a smart wrapper around a sequence of `u64` limbs, least-significant digit
 /// first.
@@ -406,48 +451,46 @@ pub trait PrimeFieldRepr:
 
     /// Performs a leftwise bitshift of this number by some amount.
     fn shl(&mut self, amt: u32);
-    
 
-    /// Writes this `PrimeFieldRepr` as a big endian integer.
-    #[cfg(feature = "std")]
-    fn write_be<W: Write>(&self, mut writer: W) -> io::Result<()> {
-        use byteorder::{BigEndian, WriteBytesExt};
+    /// Writes this `PrimeFieldRepr` as a big endian integer.    
+    fn write_be(&self, mut writer: &mut [u8]) -> Result<(), IoError> {
+        use byteorder::{ByteOrder, BigEndian};
 
         for digit in self.as_ref().iter().rev() {
-            writer.write_u64::<BigEndian>(*digit)?;
+            BigEndian::write_u64(writer, *digit);
         }
 
         Ok(())
     }    
 
     /// Reads a big endian integer into this representation.
-    fn read_be<R: Read>(&mut self, mut reader: R) -> io::Result<()> {
-        use byteorder::{BigEndian, ReadBytesExt};
+    fn read_be(&mut self, reader: &[u8]) -> Result<(), IoError> {
+        use byteorder::{BigEndian, ByteOrder};
 
-        for digit in self.as_mut().iter_mut().rev() {
-            *digit = reader.read_u64::<BigEndian>()?;
+        for digit in self.as_mut().iter_mut().rev() {       
+            *digit = BigEndian::read_u64(reader);
         }
 
         Ok(())
     }
 
     /// Writes this `PrimeFieldRepr` as a little endian integer.
-    fn write_le<W: Write>(&self, mut writer: W) -> io::Result<()> {
-        use byteorder::{LittleEndian, WriteBytesExt};
+    fn write_le(&self, mut writer: &mut [u8]) -> Result<(), IoError> {
+        use byteorder::{LittleEndian, ByteOrder};
 
         for digit in self.as_ref().iter() {
-            writer.write_u64::<LittleEndian>(*digit)?;
+            LittleEndian::write_u64(writer, *digit);
         }
 
         Ok(())
     }
 
     /// Reads a little endian integer into this representation.
-    fn read_le<R: Read>(&mut self, mut reader: R) -> io::Result<()> {
-        use byteorder::{LittleEndian, ReadBytesExt};
+    fn read_le(&mut self, mut reader: &mut [u8]) -> Result<(), IoError> {
+        use byteorder::{LittleEndian, ByteOrder};
 
         for digit in self.as_mut().iter_mut() {
-            *digit = reader.read_u64::<LittleEndian>()?;
+            *digit = LittleEndian::read_u64(reader);
         }
 
         Ok(())

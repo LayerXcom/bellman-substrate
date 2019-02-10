@@ -100,7 +100,7 @@ pub trait ToUniform {
 /// and some pre-computed parameters.
 pub trait JubjubEngine: Engine {
     /// The scalar field of the Jubjub curve
-    type Fs: PrimeField + SqrtField + ToUniform + Encode + Decode;
+    type Fs: PrimeField + SqrtField + ToUniform + Encode + Decode + Default + PartialEq;
     /// The parameters of Jubjub and the Sapling protocol
     type Params: JubjubParams<Self>;
 }

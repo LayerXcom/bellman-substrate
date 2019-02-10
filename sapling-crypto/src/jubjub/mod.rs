@@ -49,11 +49,13 @@ pub mod fs;
 pub mod tests;
 
 /// Point of unknown order.
-#[derive(Copy, Clone, PartialEq, Eq, Debug, Encode, Decode, Default)]
+#[cfg_attr(feature = "std", derive(Debug))]
+#[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, Default)]
 pub struct Unknown;
 
 /// Point of prime order.
-#[derive(Copy, Clone, PartialEq, Eq, Debug, Encode, Decode, Default)]
+#[cfg_attr(feature = "std", derive(Debug))]
+#[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, Default)]
 pub struct PrimeOrder;
 
 /// Fixed generators of the Jubjub curve of unknown

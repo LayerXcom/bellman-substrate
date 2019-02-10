@@ -38,7 +38,7 @@ use std::fmt::Debug;
 // See "Twisted Edwards Curves Revisited"
 //     Huseyin Hisil, Kenneth Koon-Ho Wong, Gary Carter, and Ed Dawson
 #[cfg_attr(feature = "std", derive(Debug))]
-#[derive(Encode, Decode, Default, )]
+#[derive(Encode, Decode, Default, Eq)]
 pub struct Point<E: JubjubEngine, Subgroup> {
     x: E::Fr,
     y: E::Fr,

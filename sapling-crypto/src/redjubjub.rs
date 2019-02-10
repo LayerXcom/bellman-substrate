@@ -3,6 +3,9 @@
 
 use pairing::{Field, PrimeField, PrimeFieldRepr};
 use rand::{Rng, Rand};
+use rstd::prelude::*;
+
+#[cfg(feature = "std")]
 use std::io::{self, Read, Write};
 
 use jubjub::{FixedGenerators, JubjubEngine, JubjubParams, Unknown, edwards::Point};

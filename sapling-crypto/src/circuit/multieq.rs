@@ -10,6 +10,11 @@ use bellman::{
     LinearCombination,
     Variable
 };
+use rstd::prelude::*;
+#[cfg(not(feature = "std"))]
+use alloc::string::String;
+#[cfg(feature = "std")]
+use std::string::String;
 
 pub struct MultiEq<E: Engine, CS: ConstraintSystem<E>>{
     cs: CS,

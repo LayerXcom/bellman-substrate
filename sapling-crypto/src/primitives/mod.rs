@@ -27,6 +27,7 @@ use jubjub::{
 };
 
 use blake2_rfc::blake2s::Blake2s;
+use rstd::prelude::*;
 
 #[derive(Clone)]
 pub struct ValueCommitment<E: JubjubEngine> {

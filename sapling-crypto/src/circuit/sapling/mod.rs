@@ -30,6 +30,7 @@ use super::pedersen_hash;
 use super::blake2s;
 use super::num;
 use super::multipack;
+use rstd::prelude::*;
 
 pub const TREE_DEPTH: usize = 32;
 

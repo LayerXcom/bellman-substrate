@@ -13,7 +13,6 @@ use std::sync::Arc;
 #[cfg(not(feature = "std"))]
 use alloc::sync::Arc;
 
-
 #[cfg(feature = "std")]
 use std::io::{self, Read, Write};
 

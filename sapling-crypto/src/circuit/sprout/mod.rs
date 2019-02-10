@@ -5,6 +5,7 @@ use circuit::boolean::{
     Boolean
 };
 use circuit::multipack::pack_into_inputs;
+use rstd::prelude::*;
 
 mod prfs;
 mod commitment;

@@ -10,6 +10,7 @@ use bellman::{
 };
 use super::lookup::*;
 pub use pedersen_hash::Personalization;
+use rstd::prelude::*;
 
 impl Personalization {
     fn get_constant_bools(&self) -> Vec<Boolean> {

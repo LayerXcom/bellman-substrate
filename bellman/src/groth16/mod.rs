@@ -23,6 +23,9 @@ use multiexp::SourceBuilder;
 use byteorder::{BigEndian, WriteBytesExt, ReadBytesExt};
 use rstd::prelude::*;
 
+#[cfg(not(feature = "std"))]
+use utils::{Write, Read};
+
 #[cfg(test)]
 mod tests;
 
@@ -33,81 +36,6 @@ mod verifier;
 pub use self::generator::*;
 pub use self::prover::*;
 pub use self::verifier::*;
-
-#[cfg(not(feature = "std"))]
-pub trait Write {
-    fn write(&mut self, buf: &[u8]) -> Result<usize, IoError>;
-    fn write_all(&mut self, mut buf: &[u8]) -> Result<(), IoError>;    
-}
-
-#[cfg(not(feature = "std"))]
-impl<'a> Write for &'a mut [u8] {
-    #[inline]
-    fn write(&mut self, data: &[u8]) -> Result<usize, IoError> {
-        let amt = cmp::min(data.len(), self.len());
-        let (a, b) = mem::replace(self, &mut []).split_at_mut(amt);
-        a.copy_from_slice(&data[..amt]);
-        *self = b;
-        Ok(amt)
-    }
-
-    #[inline]
-    fn write_all(&mut self, data: &[u8]) -> Result<(), IoError> {
-        if self.write(data)? == data.len() {
-            Ok(())
-        } else {
-            Err(Error::new(ErrorKind::WriteZero, "failed to write whole buffer"))
-        }
-    }    
-}
-
-#[cfg(not(feature = "std"))]
-pub trait Read {
-    fn read(&mut self, buf: &mut [u8]) -> Result<usize, IoError>;
-    fn read_exact(&mut self, mut buf: &mut [u8]) -> Result<(), IoError>;
-}
-
-#[cfg(not(feature = "std"))]
-impl<'a> Read for &'a [u8] {
-    #[inline]
-    fn read(&mut self, buf: &mut [u8]) -> Result<usize, IoError> {
-        let amt = cmp::min(buf.len(), self.len());
-        let (a, b) = self.split_at(amt);
-
-        // First check if the amount of bytes we want to read is small:
-        // `copy_from_slice` will generally expand to a call to `memcpy`, and
-        // for a single byte the overhead is significant.
-        if amt == 1 {
-            buf[0] = a[0];
-        } else {
-            buf[..amt].copy_from_slice(a);
-        }
-
-        *self = b;
-        Ok(amt)
-    }
-
-    #[inline]
-    fn read_exact(&mut self, buf: &mut [u8]) -> Result<(), IoError> {
-        if buf.len() > self.len() {
-            return Err(Error::new(ErrorKind::UnexpectedEof,
-                                  "failed to fill whole buffer"));
-        }
-        let (a, b) = self.split_at(buf.len());
-
-        // First check if the amount of bytes we want to read is small:
-        // `copy_from_slice` will generally expand to a call to `memcpy`, and
-        // for a single byte the overhead is significant.
-        if buf.len() == 1 {
-            buf[0] = a[0];
-        } else {
-            buf.copy_from_slice(a);
-        }
-
-        *self = b;
-        Ok(())
-    }
-}
 
 
 #[cfg_attr(feature = "std", derive(Debug))]
@@ -126,28 +54,11 @@ impl<E: Engine> PartialEq for Proof<E> {
     }
 }
 
-impl<E: Engine> Proof<E> {
-    #[inline]
-    fn write_core(&mut self, data: &[u8]) -> Result<usize, IoError> {
-        let amt = cmp::min(data.len(), self.len());
-        let (a, b) = mem::replace(self, &mut []).split_at_mut(amt);
-        a.copy_from_slice(&data[..amt]);
-        *self = b;
-        Ok(amt)
-    }
-
-    #[inline]
-    fn write_all_core(&mut self, data: &[u8]) -> Result<(), IoError> {
-        if self.write_core(data)? == data.len() {
-            Ok(())
-        } else {
-            Err(Error::new(ErrorKind::WriteZero, "failed to write whole buffer"))
-        }
-    }  
-
+impl<E: Engine> Proof<E> {        
     pub fn write(
         &self,
-        mut writer: &mut [u8]        
+        // mut writer: &mut [u8]
+        mut writer: Box<Write>       
     ) -> Result<(), IoError>
     {        
         // let mut tmp = vec![];
@@ -155,16 +66,16 @@ impl<E: Engine> Proof<E> {
         // tmp.extend_from_slice(self.b.into_compressed().as_ref());
         // tmp.extend_from_slice(self.c.into_compressed().as_ref());
         // writer.cop 
-        writer.write_all_core(self.a.into_compressed().as_ref())?;
-        writer.write_all_core(self.b.into_compressed().as_ref())?;
-        writer.write_all_core(self.c.into_compressed().as_ref())?;
+        writer.write_all(self.a.into_compressed().as_ref())?;
+        writer.write_all(self.b.into_compressed().as_ref())?;
+        writer.write_all(self.c.into_compressed().as_ref())?;
 
         Ok(())
     }
 
     pub fn read(
-        mut reader: & [u8] 
-    ) -> Result<(), IoError>
+        mut reader: Box<Read>
+    ) -> Result<Self, IoError>
     {
         let mut g1_repr = <E::G1Affine as CurveAffine>::Compressed::empty();
         let mut g2_repr = <E::G2Affine as CurveAffine>::Compressed::empty();
@@ -172,9 +83,11 @@ impl<E: Engine> Proof<E> {
         reader.read_exact(g1_repr.as_mut())?;
         let a = g1_repr
                 .into_affine()
-                .map_err(|e| Error::new(io::ErrorKind::InvalidData, e))
+                // .map_err(|e| Error::new(io::ErrorKind::InvalidData, e))
+                .map_err(|e| Err(e))
                 .and_then(|e| if e.is_zero() {
-                    Err(io::Error::new(io::ErrorKind::InvalidData, "point at infinity"))
+                    // Err(io::Error::new(io::ErrorKind::InvalidData, "point at infinity"))
+                    Err(IoError::Error)
                 } else {
                     Ok(e)
                 })?;
@@ -182,9 +95,11 @@ impl<E: Engine> Proof<E> {
         reader.read_exact(g2_repr.as_mut())?;
         let b = g2_repr
                 .into_affine()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+                // .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+                .map_err(|e| Err(e))
                 .and_then(|e| if e.is_zero() {
-                    Err(io::Error::new(io::ErrorKind::InvalidData, "point at infinity"))
+                    // Err(io::Error::new(io::ErrorKind::InvalidData, "point at infinity"))
+                    Err(IoError::Error)
                 } else {
                     Ok(e)
                 })?;
@@ -192,9 +107,11 @@ impl<E: Engine> Proof<E> {
         reader.read_exact(g1_repr.as_mut())?;
         let c = g1_repr
                 .into_affine()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+                // .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+                .map_err(|e| Err(e))
                 .and_then(|e| if e.is_zero() {
-                    Err(io::Error::new(io::ErrorKind::InvalidData, "point at infinity"))
+                    // Err(io::Error::new(io::ErrorKind::InvalidData, "point at infinity"))
+                    Err(e)
                 } else {
                     Ok(e)
                 })?;
@@ -276,7 +193,7 @@ impl<E: Engine> VerifyingKey<E> {
         let mut g2_repr = <E::G2Affine as CurveAffine>::Uncompressed::empty();
 
         reader.read_exact(g1_repr.as_mut())?;
-        let alpha_g1 = g1_repr.into_affine().map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        let alpha_g1 = g1_repr.into_affine().map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;    
 
         reader.read_exact(g1_repr.as_mut())?;
         let beta_g1 = g1_repr.into_affine().map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;

@@ -30,6 +30,8 @@ pub mod multicore;
 mod multiexp;
 pub mod domain;
 pub mod groth16;
+#[cfg(not(feature = "std"))]
+pub mod utils;
 
 use pairing::{Engine, Field};
 use rstd::prelude::*;

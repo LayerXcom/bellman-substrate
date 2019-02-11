@@ -373,10 +373,16 @@ impl IoError {
     }
 }
 
+impl From<Result<(), GroupDecodingError>> for IoError {
+    fn from(e: Result<(), GroupDecodingError>) -> IoError {
+        IoError::Error
+    }
+}
+
 // #[cfg(feature = "std")]
 // impl From<io::Error> for IoError {
 //     fn from(e: io::Error) -> IoError {
-//         IoError::IoError(e)
+//         IoError::Error
 //     }
 // }
 
@@ -390,7 +396,7 @@ impl IoError {
 // #[cfg(feature = "std")]
 // impl fmt::Display for IoError {
 //     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-//         if let &IoError::IoError(ref e) = self {
+//         if let &IoError::Error = self {
 //             write!(f, "I/O error: ")?;
 //             e.fmt(f)
 //         } else {

@@ -1,6 +1,5 @@
 use pairing::{     
-    IoError,
-    GroupDecodingError,
+    IoError,    
 };
 
 use rstd::prelude::*;
@@ -26,7 +25,7 @@ impl<'a> Write for &'a mut [u8] {
             Ok(())
         } else {
             // Err(Error::new(ErrorKind::WriteZero, "failed to write whole buffer"))
-            Err(IoError::Error)
+            Err(IoError::WriteZero)
         }
     }    
 }

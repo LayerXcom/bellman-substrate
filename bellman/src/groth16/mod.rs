@@ -3,6 +3,7 @@ use pairing::{
     CurveAffine,
     EncodedPoint,
     IoError,
+    GroupDecodingError,
 };
 
 use ::{
@@ -84,10 +85,10 @@ impl<E: Engine> Proof<E> {
         let a = g1_repr
                 .into_affine()
                 // .map_err(|e| Error::new(io::ErrorKind::InvalidData, e))
-                .map_err(|e| Err(e))
+                // .map_err(|e| Err(e))
                 .and_then(|e| if e.is_zero() {
                     // Err(io::Error::new(io::ErrorKind::InvalidData, "point at infinity"))
-                    Err(IoError::Error)
+                    Err(GroupDecodingError::NotOnCurve)
                 } else {
                     Ok(e)
                 })?;
@@ -96,10 +97,10 @@ impl<E: Engine> Proof<E> {
         let b = g2_repr
                 .into_affine()
                 // .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-                .map_err(|e| Err(e))
+                // .map_err(|e| Err(e))
                 .and_then(|e| if e.is_zero() {
                     // Err(io::Error::new(io::ErrorKind::InvalidData, "point at infinity"))
-                    Err(IoError::Error)
+                    Err(GroupDecodingError::NotOnCurve)
                 } else {
                     Ok(e)
                 })?;
@@ -108,10 +109,10 @@ impl<E: Engine> Proof<E> {
         let c = g1_repr
                 .into_affine()
                 // .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-                .map_err(|e| Err(e))
+                // .map_err(|e| Err(e))
                 .and_then(|e| if e.is_zero() {
                     // Err(io::Error::new(io::ErrorKind::InvalidData, "point at infinity"))
-                    Err(e)
+                    Err(GroupDecodingError::NotOnCurve)
                 } else {
                     Ok(e)
                 })?;

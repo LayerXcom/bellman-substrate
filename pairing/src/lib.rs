@@ -356,54 +356,56 @@ pub trait SqrtField: Field {
     fn sqrt(&self) -> Option<Self>;
 }
 
-#[derive(Debug)]
+#[cfg_attr(feature = "std", derive(Debug))]
 pub enum IoError {
     Error,
+    WriteZero,
+    Infinity,
+    Group(GroupDecodingError),
 }
 
-impl IoError {
-    #[inline]
+impl IoError {    
     fn description_str(&self) -> &'static str {
         match *self {            
-            // #[cfg(feature = "std")]
-            // IoError::IoError(_) => "encountered an I/O error",
-            // #[cfg(not(feature = "std"))]
-            IoError::Error => "encountered an I/O error",            
+            IoError::Error => "encountered an I/O error",   
+            IoError::WriteZero => "failed to write whole buffer",
+            IoError::Infinity => "point at infinity", 
+            IoError::Group(ref err) => err.description_str(),        
         }
     }
 }
 
-impl From<Result<(), GroupDecodingError>> for IoError {
-    fn from(e: Result<(), GroupDecodingError>) -> IoError {
+impl From<GroupDecodingError> for IoError {
+    fn from(e: GroupDecodingError) -> IoError {             
+            IoError::Group(e)        
+    }
+}
+
+#[cfg(feature = "std")]
+impl From<io::Error> for IoError {
+    fn from(e: io::Error) -> IoError {
         IoError::Error
     }
 }
 
-// #[cfg(feature = "std")]
-// impl From<io::Error> for IoError {
-//     fn from(e: io::Error) -> IoError {
-//         IoError::Error
-//     }
-// }
+#[cfg(feature = "std")]
+impl Error for IoError {
+    fn description(&self) -> &str {
+        self.description_str()        
+    }
+}
 
-// #[cfg(feature = "std")]
-// impl Error for IoError {
-//     fn description(&self) -> &str {
-//         self.description_str()        
-//     }
-// }
-
-// #[cfg(feature = "std")]
-// impl fmt::Display for IoError {
-//     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-//         if let &IoError::Error = self {
-//             write!(f, "I/O error: ")?;
-//             e.fmt(f)
-//         } else {
-//             write!(f, "{}", self.description())
-//         }
-//     }
-// }
+#[cfg(feature = "std")]
+impl fmt::Display for IoError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {        
+        match *self {
+            IoError::Group(ref err) => {
+                write!(f, "{}", err)
+            }
+            _ => write!(f, "{}", self.description())      
+        }          
+    }
+}
 
 /// This trait represents a wrapper around a biginteger which can encode any element of a particular
 /// prime field. It is a smart wrapper around a sequence of `u64` limbs, least-significant digit
@@ -554,8 +556,8 @@ pub enum GroupDecodingError {
 }
 
 #[cfg(feature = "std")]
-impl Error for GroupDecodingError {
-    fn description(&self) -> &str {
+impl GroupDecodingError {
+    fn description_str(&self) -> &'static str {
         match *self {
             GroupDecodingError::NotOnCurve => "coordinate(s) do not lie on the curve",
             GroupDecodingError::NotInSubgroup => "the element is not part of an r-order subgroup",
@@ -565,6 +567,13 @@ impl Error for GroupDecodingError {
             }
             GroupDecodingError::UnexpectedInformation => "encoding has unexpected information",
         }
+    }
+}
+
+#[cfg(feature = "std")]
+impl Error for GroupDecodingError {
+    fn description(&self) -> &str {
+        self.description_str()        
     }
 }
 

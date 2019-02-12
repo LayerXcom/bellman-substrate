@@ -52,7 +52,7 @@ use codec::{Encode, Decode};
 /// An "engine" is a collection of types (fields, elliptic curve groups, etc.)
 /// with well-defined relationships. In particular, the G1/G2 curve groups are
 /// of prime order `r`, and are equipped with a bilinear pairing function.
-pub trait Engine: Sized + 'static + Clone {
+pub trait Engine: Sized + 'static + Clone + Debug {
     /// This is the scalar field of the G1/G2 groups.
     type Fr: PrimeField + SqrtField + Encode + Decode + Default;
 
@@ -214,7 +214,7 @@ pub trait CurveAffine:
     type Prepared: Clone + Send + Sync + 'static + Encode + Decode + Default + PartialEq + Eq + Debug;
     #[cfg(not(feature = "std"))]
     type Prepared: Clone + Send + Sync + 'static + Encode + Decode + Default + PartialEq + Eq;
-    type Uncompressed: EncodedPoint<Affine = Self>;
+    type Uncompressed: EncodedPoint<Affine = Self> + Debug;
     type Compressed: EncodedPoint<Affine = Self>;
     type Pair: CurveAffine<Pair = Self>;
     type PairingResult: Field;

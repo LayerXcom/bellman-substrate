@@ -172,6 +172,7 @@ impl<E: Engine> VerifyingKey<E> {
         mut writer: &mut Vec<u8>
     ) -> Result<(), IoError>
     {
+        println!("g1: {:?}", self.alpha_g1);
         writer.write_all(self.alpha_g1.into_uncompressed().as_ref())?;
         // writer.write_all(self.beta_g1.into_uncompressed().as_ref())?;
         // writer.write_all(self.beta_g2.into_uncompressed().as_ref())?;
@@ -285,6 +286,7 @@ impl<E: Engine> Parameters<E> {
         mut writer: &mut Vec<u8>
     ) -> Result<(), IoError>
     {
+        println!("vk: {:?}", self.vk);
         self.vk.write(writer)?;
 
         // BigEndian::write_u32(writer, self.h.len() as u32);

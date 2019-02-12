@@ -294,7 +294,7 @@ impl PrimeField for Fr {
     }
 }
 
-#[derive(Clone, Encode, Decode, Default)]
+#[derive(Clone, Encode, Decode, Default, Debug)]
 pub struct DummyEngine;
 
 impl Engine for DummyEngine {
@@ -395,7 +395,7 @@ impl CurveProjective for Fr {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct FakePoint;
 
 impl AsMut<[u8]> for FakePoint {

@@ -395,7 +395,7 @@ impl CurveProjective for Fr {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct FakePoint;
 
 impl AsMut<[u8]> for FakePoint {

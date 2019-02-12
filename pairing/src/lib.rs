@@ -210,7 +210,7 @@ pub trait CurveAffine:
     type Prepared: Clone + Send + Sync + 'static + Encode + Decode + Default + PartialEq + Eq + Debug;
     #[cfg(not(feature = "std"))]
     type Prepared: Clone + Send + Sync + 'static + Encode + Decode + Default + PartialEq + Eq;
-    type Uncompressed: EncodedPoint<Affine = Self>;
+    type Uncompressed: EncodedPoint<Affine = Self> + Debug;
     type Compressed: EncodedPoint<Affine = Self>;
     type Pair: CurveAffine<Pair = Self>;
     type PairingResult: Field;

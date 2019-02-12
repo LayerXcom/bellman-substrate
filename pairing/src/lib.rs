@@ -466,8 +466,9 @@ pub trait PrimeFieldRepr:
     fn write_be(&self, mut writer: &mut [u8]) -> Result<(), IoError> {
         use byteorder::{ByteOrder, BigEndian};
 
-        for digit in self.as_ref().iter().rev() {
-            BigEndian::write_u64(writer, *digit);
+        for (i, digit) in self.as_ref().iter().rev().enumerate() {            
+            BigEndian::write_u64(&mut writer[8*i..], *digit);
+            println!("digit{:?}: {:?}", i, digit);
         }
 
         Ok(())

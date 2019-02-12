@@ -106,6 +106,7 @@ impl<E: Engine> Proof<E> {
     }
 }
 
+#[cfg_attr(feature = "std", derive(Debug))]
 #[derive(Clone)]
 pub struct VerifyingKey<E: Engine> {
     // alpha in g1 for verifying and for creating A/C elements of

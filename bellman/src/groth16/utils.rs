@@ -20,24 +20,38 @@ pub trait Write {
     }
 }
 
-impl<'a> Write for &'a mut [u8] {
+// impl<'a> Write for &'a mut [u8] {
+//     #[inline]
+//     fn write(&mut self, data: &[u8]) -> Result<usize, IoError> {
+//         let amt = cmp::min(data.len(), self.len());
+//         let (a, b) = mem::replace(self, &mut []).split_at_mut(amt);
+//         a.copy_from_slice(&data[..amt]);
+//         *self = b;
+//         Ok(amt)
+//     }
+
+//     #[inline]
+//     fn write_all(&mut self, data: &[u8]) -> Result<(), IoError> {
+//         if self.write(data)? == data.len() {
+//             Ok(())
+//         } else {
+//             // Err(Error::new(ErrorKind::WriteZero, "failed to write whole buffer"))
+//             Err(IoError::WriteZero)
+//         }
+//     }    
+// }
+
+impl Write for Vec<u8> {
     #[inline]
-    fn write(&mut self, data: &[u8]) -> Result<usize, IoError> {
-        let amt = cmp::min(data.len(), self.len());
-        let (a, b) = mem::replace(self, &mut []).split_at_mut(amt);
-        a.copy_from_slice(&data[..amt]);
-        *self = b;
-        Ok(amt)
+    fn write(&mut self, buf: &[u8]) -> Result<usize, IoError> {
+        self.extend_from_slice(buf);
+        Ok(buf.len())
     }
 
     #[inline]
-    fn write_all(&mut self, data: &[u8]) -> Result<(), IoError> {
-        if self.write(data)? == data.len() {
-            Ok(())
-        } else {
-            // Err(Error::new(ErrorKind::WriteZero, "failed to write whole buffer"))
-            Err(IoError::WriteZero)
-        }
+    fn write_all(&mut self, buf: &[u8]) -> Result<(), IoError> {
+        self.extend_from_slice(buf);
+        Ok(())
     }    
 }
 
@@ -101,6 +115,8 @@ impl<'a> Read for &'a [u8] {
         Ok(())
     }
 }
+
+
 
 // impl<'a> Read for &'a mut [u8] {
 //     // #[inline]

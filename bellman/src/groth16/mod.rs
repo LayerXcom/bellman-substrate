@@ -57,7 +57,7 @@ impl<E: Engine> PartialEq for Proof<E> {
 impl<E: Engine> Proof<E> {        
     pub fn write(
         &self,
-        mut writer: &mut[u8]
+        mut writer: &mut Vec<u8>
         // mut writer: Box<Write>       
     ) -> Result<(), IoError>
     {        
@@ -169,19 +169,19 @@ impl<E: Engine> PartialEq for VerifyingKey<E> {
 impl<E: Engine> VerifyingKey<E> {
     pub fn write(
         &self,
-        mut writer: &mut [u8]
+        mut writer: &mut Vec<u8>
     ) -> Result<(), IoError>
     {
         writer.write_all(self.alpha_g1.into_uncompressed().as_ref())?;
-        writer.write_all(self.beta_g1.into_uncompressed().as_ref())?;
-        writer.write_all(self.beta_g2.into_uncompressed().as_ref())?;
-        writer.write_all(self.gamma_g2.into_uncompressed().as_ref())?;
-        writer.write_all(self.delta_g1.into_uncompressed().as_ref())?;
-        writer.write_all(self.delta_g2.into_uncompressed().as_ref())?;
-        BigEndian::write_u32(writer, self.ic.len() as u32);
-        for ic in &self.ic {
-            writer.write_all(ic.into_uncompressed().as_ref())?;
-        }
+        // writer.write_all(self.beta_g1.into_uncompressed().as_ref())?;
+        // writer.write_all(self.beta_g2.into_uncompressed().as_ref())?;
+        // writer.write_all(self.gamma_g2.into_uncompressed().as_ref())?;
+        // writer.write_all(self.delta_g1.into_uncompressed().as_ref())?;
+        // writer.write_all(self.delta_g2.into_uncompressed().as_ref())?;
+        // BigEndian::write_u32(writer.as_mut_slice(), self.ic.len() as u32);
+        // for ic in &self.ic {
+        //     writer.write_all(ic.into_uncompressed().as_ref())?;
+        // }
 
         Ok(())
     }
@@ -282,35 +282,35 @@ impl<E: Engine> PartialEq for Parameters<E> {
 impl<E: Engine> Parameters<E> {
     pub fn write(
         &self,
-        mut writer: &mut [u8]
+        mut writer: &mut Vec<u8>
     ) -> Result<(), IoError>
     {
-        self.vk.write(&mut writer)?;
+        self.vk.write(writer)?;
 
-        BigEndian::write_u32(writer, self.h.len() as u32);
-        for g in &self.h[..] {
-            writer.write_all(g.into_uncompressed().as_ref())?;
-        }
+        // BigEndian::write_u32(writer, self.h.len() as u32);
+        // for g in &self.h[..] {
+        //     writer.write_all(g.into_uncompressed().as_ref())?;
+        // }
 
-        BigEndian::write_u32(writer, self.l.len() as u32);
-        for g in &self.l[..] {
-            writer.write_all(g.into_uncompressed().as_ref())?;
-        }
+        // BigEndian::write_u32(writer, self.l.len() as u32);
+        // for g in &self.l[..] {
+        //     writer.write_all(g.into_uncompressed().as_ref())?;
+        // }
 
-        BigEndian::write_u32(writer, self.a.len() as u32);
-        for g in &self.a[..] {
-            writer.write_all(g.into_uncompressed().as_ref())?;
-        }
+        // BigEndian::write_u32(writer, self.a.len() as u32);
+        // for g in &self.a[..] {
+        //     writer.write_all(g.into_uncompressed().as_ref())?;
+        // }
 
-        BigEndian::write_u32(writer, self.b_g1.len() as u32);
-        for g in &self.b_g1[..] {
-            writer.write_all(g.into_uncompressed().as_ref())?;
-        }
+        // BigEndian::write_u32(writer, self.b_g1.len() as u32);
+        // for g in &self.b_g1[..] {
+        //     writer.write_all(g.into_uncompressed().as_ref())?;
+        // }
 
-        BigEndian::write_u32(writer, self.b_g2.len() as u32);
-        for g in &self.b_g2[..] {
-            writer.write_all(g.into_uncompressed().as_ref())?;
-        }
+        // BigEndian::write_u32(writer, self.b_g2.len() as u32);
+        // for g in &self.b_g2[..] {
+        //     writer.write_all(g.into_uncompressed().as_ref())?;
+        // }
 
         Ok(())
     }

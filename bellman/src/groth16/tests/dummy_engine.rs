@@ -294,7 +294,7 @@ impl PrimeField for Fr {
     }
 }
 
-#[derive(Clone, Encode, Decode, Default)]
+#[derive(Clone, Encode, Decode, Default, PartialEq)]
 pub struct DummyEngine;
 
 impl Engine for DummyEngine {

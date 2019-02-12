@@ -549,6 +549,7 @@ mod test_with_bls12_381 {
 
             params.write(&mut v).unwrap();
             assert_eq!(v.len(), 2136);
+            println!("v: {:?}", v);
 
             let de_params = Parameters::read(&v[..], true).unwrap();
             assert!(params == de_params);

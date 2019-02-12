@@ -154,15 +154,15 @@ impl<E: Engine> VerifyingKey<E> {
     ) -> io::Result<()>
     {
         writer.write_all(self.alpha_g1.into_uncompressed().as_ref())?;
-        writer.write_all(self.beta_g1.into_uncompressed().as_ref())?;
-        writer.write_all(self.beta_g2.into_uncompressed().as_ref())?;
-        writer.write_all(self.gamma_g2.into_uncompressed().as_ref())?;
-        writer.write_all(self.delta_g1.into_uncompressed().as_ref())?;
-        writer.write_all(self.delta_g2.into_uncompressed().as_ref())?;
-        writer.write_u32::<BigEndian>(self.ic.len() as u32)?;
-        for ic in &self.ic {
-            writer.write_all(ic.into_uncompressed().as_ref())?;
-        }
+        // writer.write_all(self.beta_g1.into_uncompressed().as_ref())?;
+        // writer.write_all(self.beta_g2.into_uncompressed().as_ref())?;
+        // writer.write_all(self.gamma_g2.into_uncompressed().as_ref())?;
+        // writer.write_all(self.delta_g1.into_uncompressed().as_ref())?;
+        // writer.write_all(self.delta_g2.into_uncompressed().as_ref())?;
+        // writer.write_u32::<BigEndian>(self.ic.len() as u32)?;
+        // for ic in &self.ic {
+        //     writer.write_all(ic.into_uncompressed().as_ref())?;
+        // }
 
         Ok(())
     }
@@ -267,30 +267,30 @@ impl<E: Engine> Parameters<E> {
     {
         self.vk.write(&mut writer)?;
 
-        writer.write_u32::<BigEndian>(self.h.len() as u32)?;
-        for g in &self.h[..] {
-            writer.write_all(g.into_uncompressed().as_ref())?;
-        }
+        // writer.write_u32::<BigEndian>(self.h.len() as u32)?;
+        // for g in &self.h[..] {
+        //     writer.write_all(g.into_uncompressed().as_ref())?;
+        // }
 
-        writer.write_u32::<BigEndian>(self.l.len() as u32)?;
-        for g in &self.l[..] {
-            writer.write_all(g.into_uncompressed().as_ref())?;
-        }
+        // writer.write_u32::<BigEndian>(self.l.len() as u32)?;
+        // for g in &self.l[..] {
+        //     writer.write_all(g.into_uncompressed().as_ref())?;
+        // }
 
-        writer.write_u32::<BigEndian>(self.a.len() as u32)?;
-        for g in &self.a[..] {
-            writer.write_all(g.into_uncompressed().as_ref())?;
-        }
+        // writer.write_u32::<BigEndian>(self.a.len() as u32)?;
+        // for g in &self.a[..] {
+        //     writer.write_all(g.into_uncompressed().as_ref())?;
+        // }
 
-        writer.write_u32::<BigEndian>(self.b_g1.len() as u32)?;
-        for g in &self.b_g1[..] {
-            writer.write_all(g.into_uncompressed().as_ref())?;
-        }
+        // writer.write_u32::<BigEndian>(self.b_g1.len() as u32)?;
+        // for g in &self.b_g1[..] {
+        //     writer.write_all(g.into_uncompressed().as_ref())?;
+        // }
 
-        writer.write_u32::<BigEndian>(self.b_g2.len() as u32)?;
-        for g in &self.b_g2[..] {
-            writer.write_all(g.into_uncompressed().as_ref())?;
-        }
+        // writer.write_u32::<BigEndian>(self.b_g2.len() as u32)?;
+        // for g in &self.b_g2[..] {
+        //     writer.write_all(g.into_uncompressed().as_ref())?;
+        // }
 
         Ok(())
     }

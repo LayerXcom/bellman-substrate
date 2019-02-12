@@ -30,8 +30,6 @@ pub mod multicore;
 mod multiexp;
 pub mod domain;
 pub mod groth16;
-#[cfg(not(feature = "std"))]
-pub mod utils;
 
 use pairing::{Engine, Field};
 use rstd::prelude::*;
@@ -244,17 +242,7 @@ impl From<io::Error> for SynthesisError {
 #[cfg(feature = "std")]
 impl Error for SynthesisError {
     fn description(&self) -> &str {
-        self.description_str()
-        // match *self {
-        //     SynthesisError::AssignmentMissing => "an assignment for a variable could not be computed",
-        //     SynthesisError::DivisionByZero => "division by zero",
-        //     SynthesisError::Unsatisfiable => "unsatisfiable constraint system",
-        //     SynthesisError::PolynomialDegreeTooLarge => "polynomial degree is too large",
-        //     SynthesisError::UnexpectedIdentity => "encountered an identity element in the CRS",
-        //     SynthesisError::IoError(_) => "encountered an I/O error",
-        //     SynthesisError::MalformedVerifyingKey => "malformed verifying key",
-        //     SynthesisError::UnconstrainedVariable => "auxillary variable was unconstrained"
-        // }
+        self.description_str()       
     }
 }
 

@@ -10,9 +10,8 @@ version = "0.1.0"
 
 [dependencies]
 rand = { version = "0.4", default-features = false }
-bit-vec = { version = "0.4.4" }
-futures = { version = "0.1" }
-# futures = { version = "=0.3.0-alpha.12", default-features = false }
+bit-vec = { git = "https://github.com/osuketh/bit-vec", default-features = false }
+futures = { version = "0.1", default-features = false  }
 byteorder = { version = "1", default-features = false }
 parity-codec-derive = { version = "3.0", default-features = false }
 parity-codec = { version = "3.0", default-features = false }
@@ -28,8 +27,9 @@ crossbeam = { version =  "0.3", optional = true }
 [features]
 default = ["std"]
 std = [
-    "rand/std",    
-    # "futures-preview/std",
+    "rand/std",        
+    "bit-vec/std",
+    "futures/use_std",
     "byteorder/std",
     "parity-codec/std",    
     "parity-codec-derive/std",

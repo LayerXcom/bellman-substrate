@@ -40,8 +40,10 @@ pub use self::wnaf::Wnaf;
 use std::error::Error;
 #[cfg(feature = "std")]
 use std::fmt::{self, Debug};
-#[cfg(feature = "std")]
-use std::io::{self, Read, Write};
+// #[cfg(feature = "std")]
+// use std::io::{self, Read, Write};
+#[cfg(not(feature = "std"))]
+use core::convert::From;
 #[cfg(not(feature = "std"))]
 use core::result::Result;
 
@@ -381,12 +383,12 @@ impl From<GroupDecodingError> for IoError {
     }
 }
 
-#[cfg(feature = "std")]
-impl From<io::Error> for IoError {
-    fn from(e: io::Error) -> IoError {
-        IoError::Error
-    }
-}
+// #[cfg(feature = "std")]
+// impl From<io::Error> for IoError {
+//     fn from(e: io::Error) -> IoError {
+//         IoError::Error
+//     }
+// }
 
 #[cfg(feature = "std")]
 impl Error for IoError {
@@ -570,6 +572,18 @@ impl GroupDecodingError {
     }
 }
 
+impl From<IoError> for GroupDecodingError {
+    fn from(e: IoError) -> GroupDecodingError {
+        GroupDecodingError::UnexpectedInformation
+    }
+}
+
+impl From<Result<(), GroupDecodingError>> for IoError {
+    fn from(e: Result<(), GroupDecodingError>) -> IoError {
+        IoError::Error
+    }
+}
+
 #[cfg(feature = "std")]
 impl Error for GroupDecodingError {
     fn description(&self) -> &str {
@@ -588,6 +602,8 @@ impl fmt::Display for GroupDecodingError {
         }
     }
 }
+
+
 
 /// This represents an element of a prime field.
 pub trait PrimeField: Field {

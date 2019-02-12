@@ -222,6 +222,7 @@ impl<E: Engine> VerifyingKey<E> {
     }
 }
 
+#[cfg_attr(feature = "std", derive(Debug))]
 #[derive(Clone)]
 pub struct Parameters<E: Engine> {
     pub vk: VerifyingKey<E>,
@@ -543,6 +544,8 @@ mod test_with_bls12_381 {
             MySillyCircuit { a: None, b: None },
             rng
         ).unwrap();
+        
+        println!("params: {:?}", params);
 
         {
             let mut v = vec![];

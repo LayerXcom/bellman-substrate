@@ -172,7 +172,7 @@ impl<E: Engine> VerifyingKey<E> {
         mut writer: &mut Vec<u8>
     ) -> Result<(), IoError>
     {
-        println!("g1: {:?}", self.alpha_g1);
+        println!("g1: {:?}", self.alpha_g1.into_uncompressed());
         writer.write_all(self.alpha_g1.into_uncompressed().as_ref())?;
         // writer.write_all(self.beta_g1.into_uncompressed().as_ref())?;
         // writer.write_all(self.beta_g2.into_uncompressed().as_ref())?;

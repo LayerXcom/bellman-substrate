@@ -123,7 +123,8 @@ macro_rules! curve_impl {
             }
 
             fn is_on_curve(&self) -> bool {
-                if self.is_zero() {                    
+                if self.is_zero() {               
+                    println!("Yes!!");
                     true
                 } else {
                     // Check that the point is on the curve
@@ -688,6 +689,7 @@ pub mod g1 {
         }
         fn into_affine_unchecked(&self) -> Result<G1Affine, GroupDecodingError> {             
             // Create a copy of this representation.
+            
             let mut copy = self.0;
 
             if copy[0] & (1 << 7) != 0 {
@@ -741,6 +743,7 @@ pub mod g1 {
                 })                
             }
         }
+        
         fn from_affine(affine: G1Affine) -> Self {            
             let mut res = Self::empty();
 

@@ -165,7 +165,7 @@ impl<E: Engine> VerifyingKey<E> {
         writer: &mut Vec<u8>
     ) -> Result<(), IoError>
     {        
-        writer.write_all(self.alpha_g1.into_uncompressed().as_ref())?;
+        writer.write_all(self.alpha_g1.into_uncompressed().as_ref())?;        
         writer.write_all(self.beta_g1.into_uncompressed().as_ref())?;
         writer.write_all(self.beta_g2.into_uncompressed().as_ref())?;
         writer.write_all(self.gamma_g2.into_uncompressed().as_ref())?;
@@ -186,8 +186,10 @@ impl<E: Engine> VerifyingKey<E> {
         let mut g1_repr = <E::G1Affine as CurveAffine>::Uncompressed::empty();        
         let mut g2_repr = <E::G2Affine as CurveAffine>::Uncompressed::empty();
 
-        reader.read_exact(g1_repr.as_mut())?;                
+        reader.read_exact(g1_repr.as_mut())?;       
+        println!("err1");
         let alpha_g1 = g1_repr.into_affine().map_err(|e| Err(e))?;            
+        println!("err2");
 
         reader.read_exact(g1_repr.as_mut())?;
         let beta_g1 = g1_repr.into_affine().map_err(|e| Err(e))?;
@@ -559,16 +561,16 @@ mod test_with_bls12_381 {
             rng
         ).unwrap();
 
-        println!("params: {:?}", params);        
+        // println!("params: {:?}", params);        
 
         {
             let mut v = vec![];
 
             params.write(&mut v).unwrap();
-            println!("v: {:?}", v);
+            // println!("v: {:?}", v);
             assert_eq!(v.len(), 2136);            
 
-            // let de_params = Parameters::<Bls12>::read(&v[..], true).unwrap();
+            let de_params = Parameters::<Bls12>::read(&v[..], true).unwrap();
             // println!("params: {:?}\nde_params: {:?}", params, de_params);
             // assert!(params == de_params);
 

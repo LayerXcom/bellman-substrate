@@ -27,11 +27,12 @@ extern crate parity_codec_derive;
 // #[cfg(feature = "std")]
 // #[macro_use]
 // extern crate serde_derive;
-
+extern crate sr_std as rstd;
+extern crate core;
 #[cfg(test)]
 pub mod tests;
-
 pub mod bls12_381;
+pub mod utils;
 
 mod wnaf;
 pub use self::wnaf::Wnaf;
@@ -40,10 +41,15 @@ pub use self::wnaf::Wnaf;
 use std::error::Error;
 #[cfg(feature = "std")]
 use std::fmt::{self, Debug};
-#[cfg(feature = "std")]
-use std::io::{self, Read, Write};
+// #[cfg(feature = "std")]
+// use std::io::{self, Read, Write};
+#[cfg(not(feature = "std"))]
+use core::convert::From;
+#[cfg(not(feature = "std"))]
+use core::result::Result;
 
 use codec::{Encode, Decode};
+use utils::*;
 
 /// An "engine" is a collection of types (fields, elliptic curve groups, etc.)
 /// with well-defined relationships. In particular, the G1/G2 curve groups are
@@ -354,6 +360,57 @@ pub trait SqrtField: Field {
     fn sqrt(&self) -> Option<Self>;
 }
 
+#[cfg_attr(feature = "std", derive(Debug))]
+pub enum IoError {
+    Error,
+    WriteZero,
+    Infinity,
+    Group(GroupDecodingError),
+}
+
+impl IoError {    
+    fn description_str(&self) -> &'static str {
+        match *self {            
+            IoError::Error => "encountered an I/O error",   
+            IoError::WriteZero => "failed to write whole buffer",
+            IoError::Infinity => "point at infinity", 
+            IoError::Group(ref err) => err.description_str(),        
+        }
+    }
+}
+
+impl From<GroupDecodingError> for IoError {
+    fn from(e: GroupDecodingError) -> IoError {             
+            IoError::Group(e)        
+    }
+}
+
+// #[cfg(feature = "std")]
+// impl From<io::Error> for IoError {
+//     fn from(e: io::Error) -> IoError {
+//         IoError::Error
+//     }
+// }
+
+#[cfg(feature = "std")]
+impl Error for IoError {
+    fn description(&self) -> &str {
+        self.description_str()        
+    }
+}
+
+#[cfg(feature = "std")]
+impl fmt::Display for IoError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {        
+        match *self {
+            IoError::Group(ref err) => {
+                write!(f, "{}", err)
+            }
+            _ => write!(f, "{}", self.description())      
+        }          
+    }
+}
+
 /// This trait represents a wrapper around a biginteger which can encode any element of a particular
 /// prime field. It is a smart wrapper around a sequence of `u64` limbs, least-significant digit
 /// first.
@@ -406,48 +463,49 @@ pub trait PrimeFieldRepr:
 
     /// Performs a leftwise bitshift of this number by some amount.
     fn shl(&mut self, amt: u32);
-    
 
-    /// Writes this `PrimeFieldRepr` as a big endian integer.
-    #[cfg(feature = "std")]
-    fn write_be<W: Write>(&self, mut writer: W) -> io::Result<()> {
-        use byteorder::{BigEndian, WriteBytesExt};
+    /// Writes this `PrimeFieldRepr` as a big endian integer.    
+    fn write_be(&self, writer: &mut [u8]) -> Result<(), IoError> {
+        use byteorder::{ByteOrder, BigEndian};
 
-        for digit in self.as_ref().iter().rev() {
-            writer.write_u64::<BigEndian>(*digit)?;
-        }
-
+        for (i, digit) in self.as_ref().iter().rev().enumerate() {                        
+            BigEndian::write_u64(&mut writer[8*i..], *digit);            
+        }                
+        // for digit in self.as_ref().iter().rev() {                        
+        //     writer.write_u64(*digit);            
+        // }            
+        
         Ok(())
     }    
 
     /// Reads a big endian integer into this representation.
-    fn read_be<R: Read>(&mut self, mut reader: R) -> io::Result<()> {
-        use byteorder::{BigEndian, ReadBytesExt};
-
-        for digit in self.as_mut().iter_mut().rev() {
-            *digit = reader.read_u64::<BigEndian>()?;
-        }
+    fn read_be(&mut self, mut reader: &[u8]) -> Result<(), IoError> {               
+        for digit in self.as_mut().iter_mut().rev() {       
+            *digit = reader.read_u64().unwrap();         
+            // println!("digit: {:?}, reader: {:?}", digit, reader.len());
+        }        
 
         Ok(())
     }
 
     /// Writes this `PrimeFieldRepr` as a little endian integer.
-    fn write_le<W: Write>(&self, mut writer: W) -> io::Result<()> {
-        use byteorder::{LittleEndian, WriteBytesExt};
+    fn write_le(&self, mut writer: &mut [u8]) -> Result<(), IoError> {
+        use byteorder::{LittleEndian, ByteOrder};
 
         for digit in self.as_ref().iter() {
-            writer.write_u64::<LittleEndian>(*digit)?;
+            LittleEndian::write_u64(writer, *digit);
         }
 
         Ok(())
     }
 
     /// Reads a little endian integer into this representation.
-    fn read_le<R: Read>(&mut self, mut reader: R) -> io::Result<()> {
-        use byteorder::{LittleEndian, ReadBytesExt};
+    fn read_le(&mut self, mut reader: &mut [u8]) -> Result<(), IoError> {
+        use byteorder::{LittleEndian, ByteOrder};
 
         for digit in self.as_mut().iter_mut() {
-            *digit = reader.read_u64::<LittleEndian>()?;
+            *digit = LittleEndian::read_u64(reader);
+
         }
 
         Ok(())
@@ -505,8 +563,8 @@ pub enum GroupDecodingError {
 }
 
 #[cfg(feature = "std")]
-impl Error for GroupDecodingError {
-    fn description(&self) -> &str {
+impl GroupDecodingError {
+    fn description_str(&self) -> &'static str {
         match *self {
             GroupDecodingError::NotOnCurve => "coordinate(s) do not lie on the curve",
             GroupDecodingError::NotInSubgroup => "the element is not part of an r-order subgroup",
@@ -516,6 +574,25 @@ impl Error for GroupDecodingError {
             }
             GroupDecodingError::UnexpectedInformation => "encoding has unexpected information",
         }
+    }
+}
+
+impl From<IoError> for GroupDecodingError {
+    fn from(e: IoError) -> GroupDecodingError {
+        GroupDecodingError::UnexpectedInformation
+    }
+}
+
+impl From<Result<(), GroupDecodingError>> for IoError {
+    fn from(e: Result<(), GroupDecodingError>) -> IoError {
+        IoError::Error
+    }
+}
+
+#[cfg(feature = "std")]
+impl Error for GroupDecodingError {
+    fn description(&self) -> &str {
+        self.description_str()        
     }
 }
 
@@ -530,6 +607,8 @@ impl fmt::Display for GroupDecodingError {
         }
     }
 }
+
+
 
 /// This represents an element of a prime field.
 pub trait PrimeField: Field {

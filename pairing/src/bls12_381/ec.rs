@@ -123,7 +123,7 @@ macro_rules! curve_impl {
             }
 
             fn is_on_curve(&self) -> bool {
-                if self.is_zero() {
+                if self.is_zero() {                                   
                     true
                 } else {
                     // Check that the point is on the curve
@@ -135,12 +135,12 @@ macro_rules! curve_impl {
                     x3b.mul_assign(&self.x);
                     x3b.add_assign(&Self::get_coeff_b());
 
-                    y2 == x3b
+                    y2 == x3b                    
                 }
             }
 
             fn is_in_correct_subgroup_assuming_on_curve(&self) -> bool {
-                self.mul($scalarfield::char()).is_zero()
+                self.mul($scalarfield::char()).is_zero()                
             }
         }
 
@@ -624,11 +624,14 @@ pub mod g1 {
     use super::super::{Bls12, Fq, Fq12, FqRepr, Fr, FrRepr};
     use super::g2::G2Affine;
     use rand::{Rand, Rng};
+    #[cfg(feature = "std")]
     use std::fmt;
     use {
         BitIterator, CurveAffine, CurveProjective, EncodedPoint, Engine, Field, GroupDecodingError,
         PrimeField, PrimeFieldRepr, SqrtField,
     };
+    #[cfg(not(feature = "std"))]
+    use core::result::Result;
 
     curve_impl!(
         "G1",
@@ -672,25 +675,27 @@ pub mod g1 {
         fn size() -> usize {
             96
         }
-        fn into_affine(&self) -> Result<G1Affine, GroupDecodingError> {
+        fn into_affine(&self) -> Result<G1Affine, GroupDecodingError> {            
             let affine = self.into_affine_unchecked()?;
 
-            if !affine.is_on_curve() {
+            if !affine.is_on_curve() {            
                 Err(GroupDecodingError::NotOnCurve)
-            } else if !affine.is_in_correct_subgroup_assuming_on_curve() {
+            } else if !affine.is_in_correct_subgroup_assuming_on_curve() {                    
                 Err(GroupDecodingError::NotInSubgroup)
-            } else {
+            } else {                      
                 Ok(affine)
             }
         }
-        fn into_affine_unchecked(&self) -> Result<G1Affine, GroupDecodingError> {
+        fn into_affine_unchecked(&self) -> Result<G1Affine, GroupDecodingError> {                         
             // Create a copy of this representation.
+            
             let mut copy = self.0;
 
             if copy[0] & (1 << 7) != 0 {
-                // Distinguisher bit is set, but this should be uncompressed!
+                // Distinguisher bit is set, but this should be uncompressed!                        
                 return Err(GroupDecodingError::UnexpectedCompressionMode);
-            }
+            }                    
+            
 
             if copy[0] & (1 << 6) != 0 {
                 // This is the point at infinity, which means that if we mask away
@@ -700,7 +705,7 @@ pub mod g1 {
 
                 if copy.iter().all(|b| *b == 0) {
                     Ok(G1Affine::zero())
-                } else {
+                } else {                    
                     Err(GroupDecodingError::UnexpectedInformation)
                 }
             } else {
@@ -715,26 +720,36 @@ pub mod g1 {
 
                 let mut x = FqRepr([0; 6]);
                 let mut y = FqRepr([0; 6]);
-
+                
                 {
-                    let mut reader = &copy[..];
+                    // let mut reader = &copy[..];           
+                    {
+                        let mut reader_left = &mut copy[..48];
+                        x.read_be(&mut reader_left).unwrap();
+                    }   
+                    {
+                        let mut reader_right = &mut copy[48..];
+                        y.read_be(&mut reader_right).unwrap();                        
+                    }      
 
-                    x.read_be(&mut reader).unwrap();
-                    y.read_be(&mut reader).unwrap();
-                }
+                    // x.read_be(&mut reader).unwrap();
+                    // y.read_be(&mut reader).unwrap();      
+                    
+                }                                 
 
                 Ok(G1Affine {
-                    x: Fq::from_repr(x).map_err(|e| {
+                    x: Fq::from_repr(x).map_err(|e| {                        
                         GroupDecodingError::CoordinateDecodingError("x coordinate", e)
                     })?,
-                    y: Fq::from_repr(y).map_err(|e| {
+                    y: Fq::from_repr(y).map_err(|e| {                                              
                         GroupDecodingError::CoordinateDecodingError("y coordinate", e)
                     })?,
                     infinity: false,
-                })
+                })                
             }
         }
-        fn from_affine(affine: G1Affine) -> Self {
+        
+        fn from_affine(affine: G1Affine) -> Self {            
             let mut res = Self::empty();
 
             if affine.is_zero() {
@@ -742,10 +757,18 @@ pub mod g1 {
                 // is at infinity.
                 res.0[0] |= 1 << 6;
             } else {
-                let mut writer = &mut res.0[..];
+                // let mut writer = &mut res.0[..];
 
-                affine.x.into_repr().write_be(&mut writer).unwrap();
-                affine.y.into_repr().write_be(&mut writer).unwrap();
+                // affine.x.into_repr().write_be(&mut writer).unwrap();
+                // affine.y.into_repr().write_be(&mut writer).unwrap();
+                {
+                    let mut writer_left = &mut res.0[..48];                
+                    affine.x.into_repr().write_be(&mut writer_left).unwrap();
+                }                
+                {
+                    let mut writer_right = &mut res.0[48..];
+                    affine.y.into_repr().write_be(&mut writer_right).unwrap();
+                }                                
             }
 
             res
@@ -793,7 +816,7 @@ pub mod g1 {
                 Ok(affine)
             }
         }
-        fn into_affine_unchecked(&self) -> Result<G1Affine, GroupDecodingError> {
+        fn into_affine_unchecked(&self) -> Result<G1Affine, GroupDecodingError> {            
             // Create a copy of this representation.
             let mut copy = self.0;
 
@@ -810,7 +833,7 @@ pub mod g1 {
 
                 if copy.iter().all(|b| *b == 0) {
                     Ok(G1Affine::zero())
-                } else {
+                } else {                    
                     Err(GroupDecodingError::UnexpectedInformation)
                 }
             } else {
@@ -1271,11 +1294,14 @@ pub mod g2 {
     use super::super::{Bls12, Fq, Fq12, Fq2, FqRepr, Fr, FrRepr};
     use super::g1::G1Affine;
     use rand::{Rand, Rng};
+    #[cfg(feature = "std")]
     use std::fmt;
     use {
         BitIterator, CurveAffine, CurveProjective, EncodedPoint, Engine, Field, GroupDecodingError,
         PrimeField, PrimeFieldRepr, SqrtField,
     };
+    #[cfg(not(feature = "std"))]
+    use core::result::Result;
 
     curve_impl!(
         "G2",
@@ -1330,7 +1356,7 @@ pub mod g2 {
                 Ok(affine)
             }
         }
-        fn into_affine_unchecked(&self) -> Result<G2Affine, GroupDecodingError> {
+        fn into_affine_unchecked(&self) -> Result<G2Affine, GroupDecodingError> {            
             // Create a copy of this representation.
             let mut copy = self.0;
 
@@ -1347,7 +1373,7 @@ pub mod g2 {
 
                 if copy.iter().all(|b| *b == 0) {
                     Ok(G2Affine::zero())
-                } else {
+                } else {                    
                     Err(GroupDecodingError::UnexpectedInformation)
                 }
             } else {
@@ -1366,12 +1392,29 @@ pub mod g2 {
                 let mut y_c1 = FqRepr([0; 6]);
 
                 {
-                    let mut reader = &copy[..];
+                    // let mut reader = &copy[..];
 
-                    x_c1.read_be(&mut reader).unwrap();
-                    x_c0.read_be(&mut reader).unwrap();
-                    y_c1.read_be(&mut reader).unwrap();
-                    y_c0.read_be(&mut reader).unwrap();
+                    {
+                        let mut reader_x_c1 = &mut copy[..48];
+                        x_c1.read_be(&mut reader_x_c1).unwrap();
+                    }
+                    {
+                        let mut reader_x_c0 = &mut copy[48..96];
+                        x_c0.read_be(&mut reader_x_c0).unwrap();
+                    }
+                    {
+                        let mut reader_y_c1 = &mut copy[96..144];
+                        y_c1.read_be(&mut reader_y_c1).unwrap();
+                    }
+                    {
+                        let mut reader_y_c0 = &mut copy[144..];
+                        y_c0.read_be(&mut reader_y_c0).unwrap();
+                    }
+
+                    // x_c1.read_be(&mut reader).unwrap();
+                    // x_c0.read_be(&mut reader).unwrap();
+                    // y_c1.read_be(&mut reader).unwrap();
+                    // y_c0.read_be(&mut reader).unwrap();
                 }
 
                 Ok(G2Affine {
@@ -1395,7 +1438,7 @@ pub mod g2 {
                 })
             }
         }
-        fn from_affine(affine: G2Affine) -> Self {
+        fn from_affine(affine: G2Affine) -> Self {            
             let mut res = Self::empty();
 
             if affine.is_zero() {
@@ -1403,12 +1446,28 @@ pub mod g2 {
                 // is at infinity.
                 res.0[0] |= 1 << 6;
             } else {
-                let mut writer = &mut res.0[..];
+                // let mut writer = &mut res.0[..];
 
-                affine.x.c1.into_repr().write_be(&mut writer).unwrap();
-                affine.x.c0.into_repr().write_be(&mut writer).unwrap();
-                affine.y.c1.into_repr().write_be(&mut writer).unwrap();
-                affine.y.c0.into_repr().write_be(&mut writer).unwrap();
+                // affine.x.c1.into_repr().write_be(&mut writer).unwrap();
+                // affine.x.c0.into_repr().write_be(&mut writer).unwrap();
+                // affine.y.c1.into_repr().write_be(&mut writer).unwrap();
+                // affine.y.c0.into_repr().write_be(&mut writer).unwrap();
+                {
+                    let mut writer_x_c1 = &mut res.0[..48];                
+                    affine.x.c1.into_repr().write_be(&mut writer_x_c1).unwrap();
+                }
+                {
+                    let mut writer_x_c0 = &mut res.0[48..96];                
+                    affine.x.c0.into_repr().write_be(&mut writer_x_c0).unwrap();
+                }
+                {
+                    let mut writer_y_c1 = &mut res.0[96..144];                
+                    affine.y.c1.into_repr().write_be(&mut writer_y_c1).unwrap();
+                }
+                {
+                    let mut writer_y_c0 = &mut res.0[144..];                
+                    affine.y.c0.into_repr().write_be(&mut writer_y_c0).unwrap();
+                }
             }
 
             res
@@ -1456,7 +1515,7 @@ pub mod g2 {
                 Ok(affine)
             }
         }
-        fn into_affine_unchecked(&self) -> Result<G2Affine, GroupDecodingError> {
+        fn into_affine_unchecked(&self) -> Result<G2Affine, GroupDecodingError> {            
             // Create a copy of this representation.
             let mut copy = self.0;
 
@@ -1473,7 +1532,7 @@ pub mod g2 {
 
                 if copy.iter().all(|b| *b == 0) {
                     Ok(G2Affine::zero())
-                } else {
+                } else {                    
                     Err(GroupDecodingError::UnexpectedInformation)
                 }
             } else {
@@ -1488,10 +1547,18 @@ pub mod g2 {
                 let mut x_c0 = FqRepr([0; 6]);
 
                 {
-                    let mut reader = &copy[..];
+                    // let mut reader = &copy[..];
+                    {
+                        let mut reader_x_c1 = &mut copy[..48];
+                        x_c1.read_be(&mut reader_x_c1).unwrap();
+                    }
+                    {
+                        let mut reader_x_c0 = &mut copy[48..];
+                        x_c0.read_be(&mut reader_x_c0).unwrap();
+                    }
 
-                    x_c1.read_be(&mut reader).unwrap();
-                    x_c0.read_be(&mut reader).unwrap();
+                    // x_c1.read_be(&mut reader).unwrap();
+                    // x_c0.read_be(&mut reader).unwrap();
                 }
 
                 // Interpret as Fq element.
@@ -1507,7 +1574,7 @@ pub mod g2 {
                 G2Affine::get_point_from_x(x, greatest).ok_or(GroupDecodingError::NotOnCurve)
             }
         }
-        fn from_affine(affine: G2Affine) -> Self {
+        fn from_affine(affine: G2Affine) -> Self {            
             let mut res = Self::empty();
 
             if affine.is_zero() {
@@ -1516,10 +1583,18 @@ pub mod g2 {
                 res.0[0] |= 1 << 6;
             } else {
                 {
-                    let mut writer = &mut res.0[..];
+                    // let mut writer = &mut res.0[..];
 
-                    affine.x.c1.into_repr().write_be(&mut writer).unwrap();
-                    affine.x.c0.into_repr().write_be(&mut writer).unwrap();
+                    // affine.x.c1.into_repr().write_be(&mut writer).unwrap();
+                    // affine.x.c0.into_repr().write_be(&mut writer).unwrap();
+                    {
+                        let mut writer_left = &mut res.0[..48];                
+                        affine.x.c1.into_repr().write_be(&mut writer_left).unwrap();
+                    }
+                    {
+                        let mut writer_right = &mut res.0[48..];                
+                        affine.x.c0.into_repr().write_be(&mut writer_right).unwrap();
+                    }
                 }
 
                 let mut negy = affine.y;

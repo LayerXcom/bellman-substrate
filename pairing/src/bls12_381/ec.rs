@@ -123,7 +123,7 @@ macro_rules! curve_impl {
             }
 
             fn is_on_curve(&self) -> bool {
-                if self.is_zero() {
+                if self.is_zero() {                    
                     true
                 } else {
                     // Check that the point is on the curve
@@ -134,7 +134,7 @@ macro_rules! curve_impl {
                     x3b.square();
                     x3b.mul_assign(&self.x);
                     x3b.add_assign(&Self::get_coeff_b());
-
+                    println!("y2: {:?}, x3: {:?}", y2, x3b);
                     y2 == x3b
                 }
             }
@@ -678,22 +678,23 @@ pub mod g1 {
         fn into_affine(&self) -> Result<G1Affine, GroupDecodingError> {
             let affine = self.into_affine_unchecked()?;
 
-            if !affine.is_on_curve() {
+            if !affine.is_on_curve() {            
                 Err(GroupDecodingError::NotOnCurve)
-            } else if !affine.is_in_correct_subgroup_assuming_on_curve() {
+            } else if !affine.is_in_correct_subgroup_assuming_on_curve() {                
                 Err(GroupDecodingError::NotInSubgroup)
-            } else {
+            } else {                
                 Ok(affine)
             }
         }
-        fn into_affine_unchecked(&self) -> Result<G1Affine, GroupDecodingError> {            
+        fn into_affine_unchecked(&self) -> Result<G1Affine, GroupDecodingError> {             
             // Create a copy of this representation.
             let mut copy = self.0;
 
             if copy[0] & (1 << 7) != 0 {
-                // Distinguisher bit is set, but this should be uncompressed!
+                // Distinguisher bit is set, but this should be uncompressed!                        
                 return Err(GroupDecodingError::UnexpectedCompressionMode);
-            }
+            }                    
+            
 
             if copy[0] & (1 << 6) != 0 {
                 // This is the point at infinity, which means that if we mask away
@@ -703,7 +704,7 @@ pub mod g1 {
 
                 if copy.iter().all(|b| *b == 0) {
                     Ok(G1Affine::zero())
-                } else {
+                } else {                    
                     Err(GroupDecodingError::UnexpectedInformation)
                 }
             } else {
@@ -718,13 +719,16 @@ pub mod g1 {
 
                 let mut x = FqRepr([0; 6]);
                 let mut y = FqRepr([0; 6]);
-
+                
                 {
                     let mut reader = &copy[..];
+                    println!("reader_before: {:?}", reader);
 
                     x.read_be(&mut reader).unwrap();
                     y.read_be(&mut reader).unwrap();
+                    println!("reader: {:?}, x: {:?}, y: {:?}", reader, x, y);
                 }
+                println!("x_repr: {:?}", Fq::from_repr(x).unwrap());
 
                 Ok(G1Affine {
                     x: Fq::from_repr(x).map_err(|e| {
@@ -734,7 +738,7 @@ pub mod g1 {
                         GroupDecodingError::CoordinateDecodingError("y coordinate", e)
                     })?,
                     infinity: false,
-                })
+                })                
             }
         }
         fn from_affine(affine: G1Affine) -> Self {            
@@ -745,13 +749,18 @@ pub mod g1 {
                 // is at infinity.
                 res.0[0] |= 1 << 6;
             } else {
-                let mut writer = &mut res.0[..];
+                // let mut writer = &mut res.0[..];
 
-                affine.x.into_repr().write_be(&mut writer).unwrap();
-                affine.y.into_repr().write_be(&mut writer).unwrap();
-                println!("affine_x: {:?}", affine.x.into_repr());
-                println!("affine_y: {:?}", affine.y.into_repr());
-                println!("writer: {:?}", writer);
+                // affine.x.into_repr().write_be(&mut writer).unwrap();
+                // affine.y.into_repr().write_be(&mut writer).unwrap();
+                {
+                    let mut writer_left = &mut res.0[..48];                
+                    affine.x.into_repr().write_be(&mut writer_left).unwrap();
+                }                
+                {
+                    let mut writer_right = &mut res.0[48..];
+                    affine.y.into_repr().write_be(&mut writer_right).unwrap();
+                }                                
             }
 
             res
@@ -816,7 +825,7 @@ pub mod g1 {
 
                 if copy.iter().all(|b| *b == 0) {
                     Ok(G1Affine::zero())
-                } else {
+                } else {                    
                     Err(GroupDecodingError::UnexpectedInformation)
                 }
             } else {
@@ -1356,7 +1365,7 @@ pub mod g2 {
 
                 if copy.iter().all(|b| *b == 0) {
                     Ok(G2Affine::zero())
-                } else {
+                } else {                    
                     Err(GroupDecodingError::UnexpectedInformation)
                 }
             } else {
@@ -1412,12 +1421,28 @@ pub mod g2 {
                 // is at infinity.
                 res.0[0] |= 1 << 6;
             } else {
-                let mut writer = &mut res.0[..];
+                // let mut writer = &mut res.0[..];
 
-                affine.x.c1.into_repr().write_be(&mut writer).unwrap();
-                affine.x.c0.into_repr().write_be(&mut writer).unwrap();
-                affine.y.c1.into_repr().write_be(&mut writer).unwrap();
-                affine.y.c0.into_repr().write_be(&mut writer).unwrap();
+                // affine.x.c1.into_repr().write_be(&mut writer).unwrap();
+                // affine.x.c0.into_repr().write_be(&mut writer).unwrap();
+                // affine.y.c1.into_repr().write_be(&mut writer).unwrap();
+                // affine.y.c0.into_repr().write_be(&mut writer).unwrap();
+                {
+                    let mut writer_x_c1 = &mut res.0[..48];                
+                    affine.x.c1.into_repr().write_be(&mut writer_x_c1).unwrap();
+                }
+                {
+                    let mut writer_x_c0 = &mut res.0[48..96];                
+                    affine.x.c0.into_repr().write_be(&mut writer_x_c0).unwrap();
+                }
+                {
+                    let mut writer_y_c1 = &mut res.0[96..144];                
+                    affine.y.c1.into_repr().write_be(&mut writer_y_c1).unwrap();
+                }
+                {
+                    let mut writer_y_c0 = &mut res.0[144..];                
+                    affine.y.c0.into_repr().write_be(&mut writer_y_c0).unwrap();
+                }
             }
 
             res
@@ -1482,7 +1507,7 @@ pub mod g2 {
 
                 if copy.iter().all(|b| *b == 0) {
                     Ok(G2Affine::zero())
-                } else {
+                } else {                    
                     Err(GroupDecodingError::UnexpectedInformation)
                 }
             } else {
@@ -1525,10 +1550,18 @@ pub mod g2 {
                 res.0[0] |= 1 << 6;
             } else {
                 {
-                    let mut writer = &mut res.0[..];
+                    // let mut writer = &mut res.0[..];
 
-                    affine.x.c1.into_repr().write_be(&mut writer).unwrap();
-                    affine.x.c0.into_repr().write_be(&mut writer).unwrap();
+                    // affine.x.c1.into_repr().write_be(&mut writer).unwrap();
+                    // affine.x.c0.into_repr().write_be(&mut writer).unwrap();
+                    {
+                        let mut writer_left = &mut res.0[..48];                
+                        affine.x.c1.into_repr().write_be(&mut writer_left).unwrap();
+                    }
+                    {
+                        let mut writer_right = &mut res.0[48..];                
+                        affine.x.c0.into_repr().write_be(&mut writer_right).unwrap();
+                    }
                 }
 
                 let mut negy = affine.y;

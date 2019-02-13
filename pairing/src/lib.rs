@@ -27,11 +27,12 @@ extern crate parity_codec_derive;
 // #[cfg(feature = "std")]
 // #[macro_use]
 // extern crate serde_derive;
-
+extern crate sr_std as rstd;
+extern crate core;
 #[cfg(test)]
 pub mod tests;
-
 pub mod bls12_381;
+pub mod utils;
 
 mod wnaf;
 pub use self::wnaf::Wnaf;
@@ -48,6 +49,7 @@ use core::convert::From;
 use core::result::Result;
 
 use codec::{Encode, Decode};
+use utils::*;
 
 /// An "engine" is a collection of types (fields, elliptic curve groups, etc.)
 /// with well-defined relationships. In particular, the G1/G2 curve groups are
@@ -463,24 +465,24 @@ pub trait PrimeFieldRepr:
     fn shl(&mut self, amt: u32);
 
     /// Writes this `PrimeFieldRepr` as a big endian integer.    
-    fn write_be(&self, mut writer: &mut [u8]) -> Result<(), IoError> {
+    fn write_be(&self, writer: &mut [u8]) -> Result<(), IoError> {
         use byteorder::{ByteOrder, BigEndian};
 
-        for (i, digit) in self.as_ref().iter().rev().enumerate() {            
-            BigEndian::write_u64(&mut writer[8*i..], *digit);
-            println!("digit{:?}: {:?}", i, digit);
-        }
-
+        for (i, digit) in self.as_ref().iter().rev().enumerate() {                        
+            BigEndian::write_u64(&mut writer[8*i..], *digit);            
+        }                
+        // for digit in self.as_ref().iter().rev() {                        
+        //     writer.write_u64(*digit);            
+        // }            
+        
         Ok(())
     }    
 
     /// Reads a big endian integer into this representation.
-    fn read_be(&mut self, reader: &[u8]) -> Result<(), IoError> {
-        use byteorder::{BigEndian, ByteOrder};
-
+    fn read_be(&mut self, mut reader: &[u8]) -> Result<(), IoError> {               
         for digit in self.as_mut().iter_mut().rev() {       
-            *digit = BigEndian::read_u64(reader);
-        }
+            *digit = reader.read_u64().unwrap();            
+        }        
 
         Ok(())
     }
@@ -502,6 +504,7 @@ pub trait PrimeFieldRepr:
 
         for digit in self.as_mut().iter_mut() {
             *digit = LittleEndian::read_u64(reader);
+
         }
 
         Ok(())

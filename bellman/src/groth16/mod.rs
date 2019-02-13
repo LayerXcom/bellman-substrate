@@ -31,12 +31,11 @@ mod tests;
 mod generator;
 mod prover;
 mod verifier;
-mod utils;
 
 pub use self::generator::*;
 pub use self::prover::*;
 pub use self::verifier::*;
-pub use self::utils::*;
+pub use pairing::utils::*;
 
 #[cfg_attr(feature = "std", derive(Debug))]
 #[derive(Clone, Encode, Decode, Default, Eq)]
@@ -57,15 +56,9 @@ impl<E: Engine> PartialEq for Proof<E> {
 impl<E: Engine> Proof<E> {        
     pub fn write(
         &self,
-        mut writer: &mut Vec<u8>
-        // mut writer: Box<Write>       
+        writer: &mut Vec<u8>           
     ) -> Result<(), IoError>
-    {        
-        // let mut tmp = vec![];
-        // tmp.extend_from_slice(self.a.into_compressed().as_ref());
-        // tmp.extend_from_slice(self.b.into_compressed().as_ref());
-        // tmp.extend_from_slice(self.c.into_compressed().as_ref());
-        // writer.cop 
+    {                
         writer.write_all(self.a.into_compressed().as_ref())?;
         writer.write_all(self.b.into_compressed().as_ref())?;
         writer.write_all(self.c.into_compressed().as_ref())?;
@@ -169,20 +162,19 @@ impl<E: Engine> PartialEq for VerifyingKey<E> {
 impl<E: Engine> VerifyingKey<E> {
     pub fn write(
         &self,
-        mut writer: &mut Vec<u8>
+        writer: &mut Vec<u8>
     ) -> Result<(), IoError>
-    {
-        println!("g1: {:?}", self.alpha_g1.into_uncompressed());
+    {        
         writer.write_all(self.alpha_g1.into_uncompressed().as_ref())?;
-        // writer.write_all(self.beta_g1.into_uncompressed().as_ref())?;
-        // writer.write_all(self.beta_g2.into_uncompressed().as_ref())?;
-        // writer.write_all(self.gamma_g2.into_uncompressed().as_ref())?;
-        // writer.write_all(self.delta_g1.into_uncompressed().as_ref())?;
-        // writer.write_all(self.delta_g2.into_uncompressed().as_ref())?;
-        // BigEndian::write_u32(writer.as_mut_slice(), self.ic.len() as u32);
-        // for ic in &self.ic {
-        //     writer.write_all(ic.into_uncompressed().as_ref())?;
-        // }
+        writer.write_all(self.beta_g1.into_uncompressed().as_ref())?;
+        writer.write_all(self.beta_g2.into_uncompressed().as_ref())?;
+        writer.write_all(self.gamma_g2.into_uncompressed().as_ref())?;
+        writer.write_all(self.delta_g1.into_uncompressed().as_ref())?;
+        writer.write_all(self.delta_g2.into_uncompressed().as_ref())?;
+        writer.write_u32(self.ic.len() as u32);
+        for ic in &self.ic {
+            writer.write_all(ic.into_uncompressed().as_ref())?;
+        }
 
         Ok(())
     }
@@ -190,12 +182,12 @@ impl<E: Engine> VerifyingKey<E> {
     pub fn read(
         mut reader: &[u8]
     ) -> Result<Self, IoError>
-    {
-        let mut g1_repr = <E::G1Affine as CurveAffine>::Uncompressed::empty();
+    {        
+        let mut g1_repr = <E::G1Affine as CurveAffine>::Uncompressed::empty();        
         let mut g2_repr = <E::G2Affine as CurveAffine>::Uncompressed::empty();
 
-        reader.read_exact(g1_repr.as_mut())?;
-        let alpha_g1 = g1_repr.into_affine().map_err(|e| Err(e))?;    
+        reader.read_exact(g1_repr.as_mut())?;                
+        let alpha_g1 = g1_repr.into_affine().map_err(|e| Err(e))?;            
 
         reader.read_exact(g1_repr.as_mut())?;
         let beta_g1 = g1_repr.into_affine().map_err(|e| Err(e))?;
@@ -283,36 +275,35 @@ impl<E: Engine> PartialEq for Parameters<E> {
 impl<E: Engine> Parameters<E> {
     pub fn write(
         &self,
-        mut writer: &mut Vec<u8>
+        writer: &mut Vec<u8>
     ) -> Result<(), IoError>
-    {
-        println!("vk: {:?}", self.vk);
+    {        
         self.vk.write(writer)?;
 
-        // BigEndian::write_u32(writer, self.h.len() as u32);
-        // for g in &self.h[..] {
-        //     writer.write_all(g.into_uncompressed().as_ref())?;
-        // }
+        writer.write_u32(self.h.len() as u32);
+        for g in &self.h[..] {
+            writer.write_all(g.into_uncompressed().as_ref())?;
+        }
 
-        // BigEndian::write_u32(writer, self.l.len() as u32);
-        // for g in &self.l[..] {
-        //     writer.write_all(g.into_uncompressed().as_ref())?;
-        // }
+        writer.write_u32(self.l.len() as u32);
+        for g in &self.l[..] {
+            writer.write_all(g.into_uncompressed().as_ref())?;
+        }
 
-        // BigEndian::write_u32(writer, self.a.len() as u32);
-        // for g in &self.a[..] {
-        //     writer.write_all(g.into_uncompressed().as_ref())?;
-        // }
+        writer.write_u32(self.a.len() as u32);
+        for g in &self.a[..] {
+            writer.write_all(g.into_uncompressed().as_ref())?;
+        }
 
-        // BigEndian::write_u32(writer, self.b_g1.len() as u32);
-        // for g in &self.b_g1[..] {
-        //     writer.write_all(g.into_uncompressed().as_ref())?;
-        // }
+        writer.write_u32(self.b_g1.len() as u32);
+        for g in &self.b_g1[..] {
+            writer.write_all(g.into_uncompressed().as_ref())?;
+        }
 
-        // BigEndian::write_u32(writer, self.b_g2.len() as u32);
-        // for g in &self.b_g2[..] {
-        //     writer.write_all(g.into_uncompressed().as_ref())?;
-        // }
+        writer.write_u32(self.b_g2.len() as u32);
+        for g in &self.b_g2[..] {
+            writer.write_all(g.into_uncompressed().as_ref())?;
+        }
 
         Ok(())
     }
@@ -321,47 +312,47 @@ impl<E: Engine> Parameters<E> {
         mut reader: &[u8],
         checked: bool
     ) -> Result<Self, GroupDecodingError>
-    {        
-        let read_g1 = |mut reader: &[u8]| -> Result<E::G1Affine, GroupDecodingError> {
-            let mut repr = <E::G1Affine as CurveAffine>::Uncompressed::empty();
-            reader.read_exact(repr.as_mut())?;
+    {                
+        // let read_g1 = |mut reader: &[u8]| -> Result<E::G1Affine, GroupDecodingError> {
+        //     let mut repr = <E::G1Affine as CurveAffine>::Uncompressed::empty();
+        //     reader.read_exact(repr.as_mut())?;
 
-            if checked {
-                repr
-                .into_affine()
-            } else {
-                repr
-                .into_affine_unchecked()
-            }
-            // .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            .and_then(|e| if e.is_zero() {
-                // Err(io::Error::new(io::ErrorKind::InvalidData, "point at infinity"))
-                Err(GroupDecodingError::NotOnCurve)
-            } else {
-                Ok(e)
-            })
-        };
+        //     if checked {
+        //         repr
+        //         .into_affine()
+        //     } else {
+        //         repr
+        //         .into_affine_unchecked()
+        //     }
+        //     // .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        //     .and_then(|e| if e.is_zero() {
+        //         // Err(io::Error::new(io::ErrorKind::InvalidData, "point at infinity"))
+        //         Err(GroupDecodingError::NotOnCurve)
+        //     } else {
+        //         Ok(e)
+        //     })
+        // };
 
-        let read_g2 = |mut reader: &[u8]| -> Result<E::G2Affine, GroupDecodingError> {
-            let mut repr = <E::G2Affine as CurveAffine>::Uncompressed::empty();
-            reader.read_exact(repr.as_mut())?;
+        // let read_g2 = |mut reader: &[u8]| -> Result<E::G2Affine, GroupDecodingError> {
+        //     let mut repr = <E::G2Affine as CurveAffine>::Uncompressed::empty();
+        //     reader.read_exact(repr.as_mut())?;
 
-            if checked {
-                repr
-                .into_affine()
-            } else {
-                repr
-                .into_affine_unchecked()
-            }
-            // .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            .and_then(|e| if e.is_zero() {
-                // Err(io::Error::new(io::ErrorKind::InvalidData, "point at infinity"))
-                Err(GroupDecodingError::NotOnCurve)
-            } else {
-                Ok(e)
-            })
-        };
-
+        //     if checked {
+        //         repr
+        //         .into_affine()
+        //     } else {
+        //         repr
+        //         .into_affine_unchecked()
+        //     }
+        //     // .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        //     .and_then(|e| if e.is_zero() {
+        //         // Err(io::Error::new(io::ErrorKind::InvalidData, "point at infinity"))
+        //         Err(GroupDecodingError::NotOnCurve)
+        //     } else {
+        //         Ok(e)
+        //     })
+        // };
+        
         let vk = VerifyingKey::<E>::read(&mut reader)?;
 
         let mut h = vec![];
@@ -370,40 +361,40 @@ impl<E: Engine> Parameters<E> {
         let mut b_g1 = vec![];
         let mut b_g2 = vec![];
 
-        {
-            let len = BigEndian::read_u32(reader) as usize;
-            for _ in 0..len {
-                h.push(read_g1(&mut reader)?);
-            }
-        }
+        // {
+        //     let len = reader.read_u32().unwrap() as usize;
+        //     for _ in 0..len {
+        //         h.push(read_g1(&mut reader)?);
+        //     }
+        // }
 
-        {
-            let len = BigEndian::read_u32(reader) as usize;
-            for _ in 0..len {
-                l.push(read_g1(&mut reader)?);
-            }
-        }
+        // {
+        //     let len = reader.read_u32().unwrap() as usize;
+        //     for _ in 0..len {
+        //         l.push(read_g1(&mut reader)?);
+        //     }
+        // }
 
-        {
-            let len = BigEndian::read_u32(reader) as usize;
-            for _ in 0..len {
-                a.push(read_g1(&mut reader)?);
-            }
-        }
+        // {
+        //     let len = reader.read_u32().unwrap() as usize;
+        //     for _ in 0..len {
+        //         a.push(read_g1(&mut reader)?);
+        //     }
+        // }
 
-        {
-            let len = BigEndian::read_u32(reader) as usize;
-            for _ in 0..len {
-                b_g1.push(read_g1(&mut reader)?);
-            }
-        }
+        // {
+        //     let len = reader.read_u32().unwrap() as usize;
+        //     for _ in 0..len {
+        //         b_g1.push(read_g1(&mut reader)?);
+        //     }
+        // }
 
-        {
-            let len = BigEndian::read_u32(reader) as usize;
-            for _ in 0..len {
-                b_g2.push(read_g2(&mut reader)?);
-            }
-        }
+        // {
+        //     let len = reader.read_u32().unwrap() as usize;
+        //     for _ in 0..len {
+        //         b_g2.push(read_g2(&mut reader)?);
+        //     }
+        // }
 
         Ok(Parameters {
             vk: vk,
@@ -568,7 +559,7 @@ mod test_with_bls12_381 {
             rng
         ).unwrap();
 
-        // println!("params: {:?}", params);        
+        println!("params: {:?}", params);        
 
         {
             let mut v = vec![];
@@ -577,7 +568,7 @@ mod test_with_bls12_381 {
             println!("v: {:?}", v);
             assert_eq!(v.len(), 2136);            
 
-            // let de_params = Parameters::read(&v[..], true).unwrap();
+            // let de_params = Parameters::<Bls12>::read(&v[..], true).unwrap();
             // println!("params: {:?}\nde_params: {:?}", params, de_params);
             // assert!(params == de_params);
 

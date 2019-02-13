@@ -19,6 +19,7 @@ use std::io::{self, Read, Write};
 use multiexp::SourceBuilder;
 use byteorder::{BigEndian, WriteBytesExt, ReadBytesExt};
 use rstd::prelude::*;
+use std::fmt::Debug;
 
 #[cfg(test)]
 mod tests;
@@ -168,14 +169,14 @@ impl<E: Engine> VerifyingKey<E> {
         Ok(())
     }
 
-    pub fn read<R: Read>(
+    pub fn read<R: Read + Debug>(
         mut reader: R
     ) -> io::Result<Self>
     {
         let mut g1_repr = <E::G1Affine as CurveAffine>::Uncompressed::empty();
         let mut g2_repr = <E::G2Affine as CurveAffine>::Uncompressed::empty();
 
-        reader.read_exact(g1_repr.as_mut())?;
+        reader.read_exact(g1_repr.as_mut())?;                
         let alpha_g1 = g1_repr.into_affine().map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         reader.read_exact(g1_repr.as_mut())?;
@@ -297,7 +298,7 @@ impl<E: Engine> Parameters<E> {
         Ok(())
     }
 
-    pub fn read<R: Read>(
+    pub fn read<R: Read + Debug>(
         mut reader: R,
         checked: bool
     ) -> io::Result<Self>
@@ -381,7 +382,7 @@ impl<E: Engine> Parameters<E> {
             for _ in 0..len {
                 b_g2.push(read_g2(&mut reader)?);
             }
-        }
+        }        
 
         Ok(Parameters {
             vk: vk,

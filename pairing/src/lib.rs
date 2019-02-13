@@ -481,7 +481,8 @@ pub trait PrimeFieldRepr:
     /// Reads a big endian integer into this representation.
     fn read_be(&mut self, mut reader: &[u8]) -> Result<(), IoError> {               
         for digit in self.as_mut().iter_mut().rev() {       
-            *digit = reader.read_u64().unwrap();            
+            *digit = reader.read_u64().unwrap();         
+            // println!("digit: {:?}, reader: {:?}", digit, reader.len());
         }        
 
         Ok(())

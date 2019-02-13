@@ -117,7 +117,7 @@ fn read_u64_be(buf: &[u8]) -> u64 {
 }
 
 pub trait Read {
-    fn read(&mut self, buf: &mut [u8]) -> Result<usize, IoError>;
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize, IoError>;    
     fn read_exact(&mut self, mut buf: &mut [u8]) -> Result<(), IoError> {
         while !buf.is_empty() {
             match self.read(buf) {

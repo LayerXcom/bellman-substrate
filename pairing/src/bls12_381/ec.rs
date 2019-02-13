@@ -123,8 +123,7 @@ macro_rules! curve_impl {
             }
 
             fn is_on_curve(&self) -> bool {
-                if self.is_zero() {               
-                    println!("Yes!!");
+                if self.is_zero() {                                   
                     true
                 } else {
                     // Check that the point is on the curve
@@ -135,13 +134,13 @@ macro_rules! curve_impl {
                     x3b.square();
                     x3b.mul_assign(&self.x);
                     x3b.add_assign(&Self::get_coeff_b());
-                    println!("y2: {:?}, x3: {:?}", y2, x3b);
-                    y2 == x3b
+
+                    y2 == x3b                    
                 }
             }
 
             fn is_in_correct_subgroup_assuming_on_curve(&self) -> bool {
-                self.mul($scalarfield::char()).is_zero()
+                self.mul($scalarfield::char()).is_zero()                
             }
         }
 
@@ -676,18 +675,18 @@ pub mod g1 {
         fn size() -> usize {
             96
         }
-        fn into_affine(&self) -> Result<G1Affine, GroupDecodingError> {
+        fn into_affine(&self) -> Result<G1Affine, GroupDecodingError> {            
             let affine = self.into_affine_unchecked()?;
 
             if !affine.is_on_curve() {            
                 Err(GroupDecodingError::NotOnCurve)
-            } else if !affine.is_in_correct_subgroup_assuming_on_curve() {                
+            } else if !affine.is_in_correct_subgroup_assuming_on_curve() {                    
                 Err(GroupDecodingError::NotInSubgroup)
-            } else {                
+            } else {                      
                 Ok(affine)
             }
         }
-        fn into_affine_unchecked(&self) -> Result<G1Affine, GroupDecodingError> {             
+        fn into_affine_unchecked(&self) -> Result<G1Affine, GroupDecodingError> {                         
             // Create a copy of this representation.
             
             let mut copy = self.0;
@@ -723,20 +722,26 @@ pub mod g1 {
                 let mut y = FqRepr([0; 6]);
                 
                 {
-                    let mut reader = &copy[..];
-                    println!("reader_before: {:?}", reader);
+                    // let mut reader = &copy[..];           
+                    {
+                        let mut reader_left = &mut copy[..48];
+                        x.read_be(&mut reader_left).unwrap();
+                    }   
+                    {
+                        let mut reader_right = &mut copy[48..];
+                        y.read_be(&mut reader_right).unwrap();                        
+                    }      
 
-                    x.read_be(&mut reader).unwrap();
-                    y.read_be(&mut reader).unwrap();
-                    println!("reader: {:?}, x: {:?}, y: {:?}", reader, x, y);
-                }
-                println!("x_repr: {:?}", Fq::from_repr(x).unwrap());
+                    // x.read_be(&mut reader).unwrap();
+                    // y.read_be(&mut reader).unwrap();      
+                    
+                }                                 
 
                 Ok(G1Affine {
-                    x: Fq::from_repr(x).map_err(|e| {
+                    x: Fq::from_repr(x).map_err(|e| {                        
                         GroupDecodingError::CoordinateDecodingError("x coordinate", e)
                     })?,
-                    y: Fq::from_repr(y).map_err(|e| {
+                    y: Fq::from_repr(y).map_err(|e| {                                              
                         GroupDecodingError::CoordinateDecodingError("y coordinate", e)
                     })?,
                     infinity: false,
@@ -1387,12 +1392,29 @@ pub mod g2 {
                 let mut y_c1 = FqRepr([0; 6]);
 
                 {
-                    let mut reader = &copy[..];
+                    // let mut reader = &copy[..];
 
-                    x_c1.read_be(&mut reader).unwrap();
-                    x_c0.read_be(&mut reader).unwrap();
-                    y_c1.read_be(&mut reader).unwrap();
-                    y_c0.read_be(&mut reader).unwrap();
+                    {
+                        let mut reader_x_c1 = &mut copy[..48];
+                        x_c1.read_be(&mut reader_x_c1).unwrap();
+                    }
+                    {
+                        let mut reader_x_c0 = &mut copy[48..96];
+                        x_c0.read_be(&mut reader_x_c0).unwrap();
+                    }
+                    {
+                        let mut reader_y_c1 = &mut copy[96..144];
+                        y_c1.read_be(&mut reader_y_c1).unwrap();
+                    }
+                    {
+                        let mut reader_y_c0 = &mut copy[144..];
+                        y_c0.read_be(&mut reader_y_c0).unwrap();
+                    }
+
+                    // x_c1.read_be(&mut reader).unwrap();
+                    // x_c0.read_be(&mut reader).unwrap();
+                    // y_c1.read_be(&mut reader).unwrap();
+                    // y_c0.read_be(&mut reader).unwrap();
                 }
 
                 Ok(G2Affine {
@@ -1525,10 +1547,18 @@ pub mod g2 {
                 let mut x_c0 = FqRepr([0; 6]);
 
                 {
-                    let mut reader = &copy[..];
+                    // let mut reader = &copy[..];
+                    {
+                        let mut reader_x_c1 = &mut copy[..48];
+                        x_c1.read_be(&mut reader_x_c1).unwrap();
+                    }
+                    {
+                        let mut reader_x_c0 = &mut copy[48..];
+                        x_c0.read_be(&mut reader_x_c0).unwrap();
+                    }
 
-                    x_c1.read_be(&mut reader).unwrap();
-                    x_c0.read_be(&mut reader).unwrap();
+                    // x_c1.read_be(&mut reader).unwrap();
+                    // x_c0.read_be(&mut reader).unwrap();
                 }
 
                 // Interpret as Fq element.

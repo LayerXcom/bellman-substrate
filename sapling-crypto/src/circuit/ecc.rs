@@ -29,6 +29,7 @@ use super::lookup::{
 };
 
 use super::boolean::Boolean;
+use rstd::prelude::*;
 
 #[derive(Clone)]
 pub struct EdwardsPoint<E: Engine> {

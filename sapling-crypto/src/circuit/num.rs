@@ -22,6 +22,7 @@ use super::boolean::{
     Boolean,
     AllocatedBit
 };
+use rstd::prelude::*;
 
 pub struct AllocatedNum<E: Engine> {
     value: Option<E::Fr>,

@@ -15,6 +15,7 @@ use bellman::{
 use super::{
     Assignment
 };
+use rstd::prelude::*;
 
 /// Represents a variable in the constraint system which is guaranteed
 /// to be either zero or one.

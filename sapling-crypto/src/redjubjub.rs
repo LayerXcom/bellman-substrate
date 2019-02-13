@@ -3,6 +3,9 @@
 
 use pairing::{Field, PrimeField, PrimeFieldRepr};
 use rand::{Rng, Rand};
+use rstd::prelude::*;
+
+#[cfg(feature = "std")]
 use std::io::{self, Read, Write};
 
 use jubjub::{FixedGenerators, JubjubEngine, JubjubParams, Unknown, edwards::Point};
@@ -30,7 +33,7 @@ fn h_star<E: JubjubEngine>(a: &[u8], b: &[u8]) -> E::Fs {
 }
 
 #[cfg_attr(feature = "std", derive(Debug))]
-#[derive(Copy, Clone, Encode, Decode, Default)]
+#[derive(Copy, Clone, Encode, Decode, Default, PartialEq, Eq)]
 pub struct Signature {
     rbar: [u8; 32],
     sbar: [u8; 32],
@@ -39,7 +42,7 @@ pub struct Signature {
 pub struct PrivateKey<E: JubjubEngine>(pub E::Fs);
 
 #[cfg_attr(feature = "std", derive(Debug))]
-#[derive(Clone, Encode, Decode, Default)]
+#[derive(Clone, Encode, Decode, Default, PartialEq, Eq)]
 pub struct PublicKey<E: JubjubEngine>(pub Point<E, Unknown>);
 
 impl Signature {

@@ -1,5 +1,6 @@
 use jubjub::*;
 use pairing::*;
+use rstd::prelude::*;
 
 #[derive(Copy, Clone)]
 pub enum Personalization {

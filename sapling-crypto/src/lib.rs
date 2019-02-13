@@ -1,3 +1,6 @@
+#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), feature(alloc))]
+
 extern crate pairing;
 extern crate bellman;
 extern crate blake2_rfc;
@@ -20,7 +23,11 @@ extern crate parity_codec as codec;
 // #[cfg(feature = "std")]
 // #[macro_use]
 // extern crate serde_derive;
+#[macro_use]
+#[cfg(not(feature = "std"))]
 extern crate core;
+extern crate sr_std as rstd;
+extern crate sr_io as runtime_io;
 
 pub mod jubjub;
 pub mod group_hash;

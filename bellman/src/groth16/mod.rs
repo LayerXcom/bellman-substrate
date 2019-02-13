@@ -17,13 +17,11 @@ use alloc::sync::Arc;
 #[cfg(not(feature = "std"))]
 use core::marker::Sized;
 
-// #[cfg(feature = "std")]
-// use std::io::{self, Read, Write};
-
 use multiexp::SourceBuilder;
 // use byteorder::{BigEndian, WriteBytesExt, ReadBytesExt};
 use byteorder::{BigEndian, ByteOrder};
 use rstd::prelude::*;
+use std::fmt::Debug;
 
 #[cfg(test)]
 mod tests;

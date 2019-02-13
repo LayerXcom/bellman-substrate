@@ -3,6 +3,7 @@ use bellman::{ConstraintSystem, SynthesisError};
 use super::boolean::{Boolean};
 use super::num::Num;
 use super::Assignment;
+use rstd::prelude::*;
 
 /// Takes a sequence of booleans and exposes them as compact
 /// public inputs

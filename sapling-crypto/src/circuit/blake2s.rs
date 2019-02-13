@@ -16,6 +16,7 @@ use super::uint32::{
 };
 
 use super::multieq::MultiEq;
+use rstd::prelude::*;
 
 /*
 2.1.  Parameters

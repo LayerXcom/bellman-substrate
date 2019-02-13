@@ -54,9 +54,9 @@ use utils::*;
 /// An "engine" is a collection of types (fields, elliptic curve groups, etc.)
 /// with well-defined relationships. In particular, the G1/G2 curve groups are
 /// of prime order `r`, and are equipped with a bilinear pairing function.
-pub trait Engine: Sized + 'static + Clone + Debug {
+pub trait Engine: Sized + 'static + Clone + PartialEq {
     /// This is the scalar field of the G1/G2 groups.
-    type Fr: PrimeField + SqrtField + Encode + Decode + Default;
+    type Fr: PrimeField + SqrtField + Encode + Decode + Default + PartialEq;
 
     /// The projective representation of an element in G1.
     type G1: CurveProjective<
@@ -76,7 +76,7 @@ pub trait Engine: Sized + 'static + Clone + Debug {
             Pair = Self::G2Affine,
             PairingResult = Self::Fqk,
         >
-        + From<Self::G1> + Encode + Decode + Default;
+        + From<Self::G1> + Encode + Decode + Default + PartialEq;
 
     /// The projective representation of an element in G2.
     type G2: CurveProjective<
@@ -96,7 +96,7 @@ pub trait Engine: Sized + 'static + Clone + Debug {
             Pair = Self::G1Affine,
             PairingResult = Self::Fqk,
         >
-        + From<Self::G2> + Encode + Decode + Default;
+        + From<Self::G2> + Encode + Decode + Default + PartialEq;
 
     /// The base field that hosts G1.
     type Fq: PrimeField + SqrtField;
@@ -105,7 +105,7 @@ pub trait Engine: Sized + 'static + Clone + Debug {
     type Fqe: SqrtField;
 
     /// The extension field that hosts the target group of the pairing.
-    type Fqk: Field + Encode + Decode + Default;
+    type Fqk: Field + Encode + Decode + Default + PartialEq;
 
     /// Perform a miller loop with some number of (G1, G2) pairs.
     fn miller_loop<'a, I>(i: I) -> Self::Fqk
@@ -148,7 +148,7 @@ pub trait CurveProjective:
     + 'static
 {
     type Engine: Engine<Fr = Self::Scalar>;
-    type Scalar: PrimeField + SqrtField + Encode + Decode + Default;
+    type Scalar: PrimeField + SqrtField + Encode + Decode + Default + PartialEq;
     type Base: SqrtField;
     type Affine: CurveAffine<Projective = Self, Scalar = Self::Scalar>;
 
@@ -209,7 +209,7 @@ pub trait CurveAffine:
     Copy + Clone + Sized + Send + Sync + fmt::Debug + fmt::Display + PartialEq + Eq + 'static
 {
     type Engine: Engine<Fr = Self::Scalar>;
-    type Scalar: PrimeField + SqrtField + Encode + Decode + Default;
+    type Scalar: PrimeField + SqrtField + Encode + Decode + Default + PartialEq;
     type Base: SqrtField;
     type Projective: CurveProjective<Affine = Self, Scalar = Self::Scalar>;
     #[cfg(feature = "std")]

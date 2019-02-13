@@ -6,6 +6,7 @@ use circuit::sha256::{
 use circuit::boolean::{
     Boolean
 };
+use rstd::prelude::*;
 
 pub fn note_comm<E, CS>(
     cs: CS,

@@ -16,6 +16,7 @@ use super::boolean::{
 };
 
 use super::multieq::MultiEq;
+use rstd::prelude::*;
 
 /// Represents an interpretation of 32 `Boolean` objects as an
 /// unsigned integer.

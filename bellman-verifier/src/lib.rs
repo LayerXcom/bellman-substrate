@@ -3,6 +3,7 @@
 
 #[macro_use]
 extern crate parity_codec_derive;
+#[cfg(not(feature = "std"))]
 #[macro_use]
 extern crate alloc;
 

@@ -21,6 +21,7 @@ use multiexp::SourceBuilder;
 // use byteorder::{BigEndian, WriteBytesExt, ReadBytesExt};
 use byteorder::{BigEndian, ByteOrder};
 use rstd::prelude::*;
+#[cfg(feature = "std")]
 use std::fmt::Debug;
 
 #[cfg(test)]

@@ -244,9 +244,7 @@ macro_rules! curve_impl {
             }
 
             fn batch_normalization(v: &mut [Self])
-            {
-                #[cfg(not(feature = "std"))]
-                use alloc::vec::Vec;
+            {                
                 // Montgomery’s Trick and Fast Implementation of Masked AES
                 // Genelle, Prouff and Quisquater
                 // Section 3.2
@@ -635,7 +633,8 @@ pub mod g1 {
         PrimeField, PrimeFieldRepr, SqrtField,
     };
     #[cfg(not(feature = "std"))]
-    use core::result::Result;
+    use rstd::result::Result;
+    use rstd::prelude::*;
 
     curve_impl!(
         "G1",
@@ -1307,8 +1306,8 @@ pub mod g2 {
         PrimeField, PrimeFieldRepr, SqrtField,
     };
     #[cfg(not(feature = "std"))]
-    use core::result::Result;
-    use rstd::vec::Vec;
+    use rstd::result::Result;
+    use rstd::prelude::*;
 
     curve_impl!(
         "G2",

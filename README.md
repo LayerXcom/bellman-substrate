@@ -1,6 +1,6 @@
-# Bridge Zcash and Substrate
+# zk-proofs for substrate
 
-This library supports for using zk-SNARKs on [Substrate](https://github.com/paritytech/substrate) and is implemented as an extension of [librustzcash](https://github.com/zcash/librustzcash). 
+This library supports for using zk-SNARKs on [substrate](https://github.com/paritytech/substrate) and is implemented as an extension of [librustzcash](https://github.com/zcash/librustzcash). 
 
 Primary purpose of this library is to be used with [zero-chain](https://github.com/LayerXcom/zero-chain). However, it is designed to be as flexible as possible and might be suited well for any other projects to use zk-SNARKs on Substrate.
 

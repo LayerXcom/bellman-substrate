@@ -1,5 +1,5 @@
 use super::{CurveProjective, PrimeField, PrimeFieldRepr};
-use rstd::vec::Vec;
+use rstd::prelude::*;
 
 /// Replaces the contents of `table` with a w-NAF window table for the given window size.
 pub(crate) fn wnaf_table<G: CurveProjective>(table: &mut Vec<G>, mut base: G, window: usize) {

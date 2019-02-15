@@ -2,8 +2,6 @@ use LegendreSymbol::*;
 use {Field, PrimeField, PrimeFieldDecodingError, PrimeFieldRepr, SqrtField};
 use rstd::{cmp, mem};
 use core::fmt;
-#[cfg(not(feature = "std"))]
-use alloc::string::ToString;
 
 // r = 52435875175126190479447740508185965837690552500527637822603658699938581184513
 const MODULUS: FrRepr = FrRepr([
@@ -286,8 +284,10 @@ impl PrimeField for Fr {
             r.mul_assign(&Fr(R2));
 
             Ok(r)
-        } else {
-            Err(PrimeFieldDecodingError::NotInField(format!("{}", r.0)))
+        } else {                        
+            // FIXME
+            // Err(PrimeFieldDecodingError::NotInField(format!("{}", r.0)))            
+            Err(PrimeFieldDecodingError::NotInField("NotInField"))
         }
     }
 
@@ -648,7 +648,6 @@ impl SqrtField for Fr {
 
 #[cfg(test)]
 use rand::{Rand, SeedableRng, XorShiftRng};
-use super::*;
 
 #[test]
 fn test_fr_repr_ordering() {
@@ -1508,6 +1507,7 @@ fn test_fr_from_into_repr() {
 }
 
 #[test]
+#[cfg(feature = "std")]
 fn test_fr_repr_display() {
     assert_eq!(
         format!(
@@ -1551,6 +1551,7 @@ fn test_fr_repr_display() {
     );
 }
 
+#[cfg(feature = "std")]
 #[test]
 fn test_fr_display() {
     assert_eq!(

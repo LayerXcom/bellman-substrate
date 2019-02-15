@@ -2,7 +2,7 @@ use IoError;
 
 use rstd::prelude::*;
 use rstd::cmp;
-use core::ptr::copy_nonoverlapping;
+use rstd::ptr::copy_nonoverlapping;
 
 macro_rules! write_num_bytes {
     ($ty:ty, $size:expr, $n:expr, $dst:expr, $which:ident) => ({

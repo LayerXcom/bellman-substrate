@@ -33,17 +33,18 @@ pub mod utils;
 mod wnaf;
 pub use self::wnaf::Wnaf;
 
-#[cfg(not(feature = "std"))]
-use rstd::alloc::string::String;
 #[cfg(feature = "std")]
 use std::error::Error;
 
+#[cfg(feature = "std")]
+use std::fmt::{self, Debug};
+#[cfg(not(feature = "std"))]
 use core::fmt::{self, Debug};
 
 #[cfg(not(feature = "std"))]
 use core::convert::From;
 #[cfg(not(feature = "std"))]
-use core::result::Result;
+use rstd::result::Result;
 
 use codec::{Encode, Decode};
 use utils::*;
@@ -489,31 +490,27 @@ pub trait PrimeFieldRepr:
     /// Reads a big endian integer into this representation.
     fn read_be(&mut self, mut reader: &[u8]) -> Result<(), IoError> {               
         for digit in self.as_mut().iter_mut().rev() {       
-            *digit = reader.read_u64().unwrap();         
-            // println!("digit: {:?}, reader: {:?}", digit, reader.len());
+            *digit = reader.read_u64().unwrap();                     
         }        
 
         Ok(())
     }
 
     /// Writes this `PrimeFieldRepr` as a little endian integer.
-    fn write_le(&self, mut writer: &mut [u8]) -> Result<(), IoError> {
+    fn write_le(&self, writer: &mut [u8]) -> Result<(), IoError> {
         use byteorder::{LittleEndian, ByteOrder};
 
-        for digit in self.as_ref().iter() {
-            LittleEndian::write_u64(writer, *digit);
+        for (i, digit) in self.as_ref().iter().enumerate() {
+            LittleEndian::write_u64(&mut writer[8*i..], *digit);
         }
 
         Ok(())
     }
 
     /// Reads a little endian integer into this representation.
-    fn read_le(&mut self, mut reader: &mut [u8]) -> Result<(), IoError> {
-        use byteorder::{LittleEndian, ByteOrder};
-
+    fn read_le(&mut self, mut reader: &[u8]) -> Result<(), IoError> {        
         for digit in self.as_mut().iter_mut() {
-            *digit = LittleEndian::read_u64(reader);
-
+            *digit = reader.read_u64().unwrap();
         }
 
         Ok(())
@@ -531,16 +528,22 @@ pub enum LegendreSymbol {
 /// `PrimeField` element.
 #[derive(Debug)]
 pub enum PrimeFieldDecodingError {
-    /// The encoded value is not in the field
-    NotInField(String),
+    /// The encoded value is not in the field    
+    NotInField(&'static str),    
+}
+
+impl PrimeFieldDecodingError {
+    fn description_str(&self) -> &str {
+        match *self {            
+            PrimeFieldDecodingError::NotInField(..) => "not an element of the field",            
+        }
+    }
 }
 
 #[cfg(feature = "std")]
 impl Error for PrimeFieldDecodingError {
     fn description(&self) -> &str {
-        match *self {
-            PrimeFieldDecodingError::NotInField(..) => "not an element of the field",
-        }
+        self.description_str()
     }
 }
 

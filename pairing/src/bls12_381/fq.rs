@@ -3,8 +3,6 @@ use rstd::cmp::Ordering;
 use rstd::mem;
 use {Field, PrimeField, PrimeFieldDecodingError, PrimeFieldRepr, SqrtField};
 use core::fmt;
-#[cfg(not(feature = "std"))]
-use alloc::string::ToString;
 
 // q = 4002409555221667393417789825735904156556882819939007885332058136124031650490837864442687629129015664037894272559787
 const MODULUS: FqRepr = FqRepr([
@@ -754,8 +752,10 @@ impl PrimeField for Fq {
             r.mul_assign(&Fq(R2));
 
             Ok(r)
-        } else {
-            Err(PrimeFieldDecodingError::NotInField(format!("{}", r.0)))
+        } else {            
+            // FIXME
+            // Err(PrimeFieldDecodingError::NotInField(format!("{}", r.0)))            
+            Err(PrimeFieldDecodingError::NotInField("NotInField"))
         }
     }
 
@@ -2843,6 +2843,7 @@ fn test_fq_from_into_repr() {
 }
 
 #[test]
+#[cfg(feature = "std")]
 fn test_fq_repr_display() {
     assert_eq!(
         format!("{}", FqRepr([0xa956babf9301ea24, 0x39a8f184f3535c7b, 0xb38d35b3f6779585, 0x676cc4eef4c46f2c, 0xb1d4aad87651e694, 0x1947f0d5f4fe325a])),
@@ -2863,6 +2864,7 @@ fn test_fq_repr_display() {
 }
 
 #[test]
+#[cfg(feature = "std")]
 fn test_fq_display() {
     assert_eq!(
         format!("{}", Fq::from_repr(FqRepr([0xa956babf9301ea24, 0x39a8f184f3535c7b, 0xb38d35b3f6779585, 0x676cc4eef4c46f2c, 0xb1d4aad87651e694, 0x1947f0d5f4fe325a])).unwrap()),

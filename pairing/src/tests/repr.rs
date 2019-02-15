@@ -1,6 +1,6 @@
 use rand::{SeedableRng, XorShiftRng};
 use PrimeFieldRepr;
-use rstd::vec::Vec;
+use rstd::prelude::*;
 
 pub fn random_repr_tests<R: PrimeFieldRepr>() {
     random_encoding_tests::<R>();

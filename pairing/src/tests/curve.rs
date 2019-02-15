@@ -345,7 +345,7 @@ fn random_addition_tests<G: CurveProjective>() {
 }
 
 fn random_transformation_tests<G: CurveProjective>() {
-    use rstd::vec::Vec;
+    use rstd::prelude::*;
     let mut rng = XorShiftRng::from_seed([0x5dbe6259, 0x8d313d76, 0x3237db17, 0xe5bc0654]);
 
     for _ in 0..1000 {

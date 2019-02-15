@@ -23,7 +23,7 @@ use parity_codec::{Encode, Decode, Input, Output};
 const MODULUS_R: Wrapping<u32> = Wrapping(64513);
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Default)]
-pub struct Fr(Wrapping<u32>);
+pub struct Fr(pub Wrapping<u32>);
 
 impl Encode for Fr {
     fn using_encoded<R, F: FnOnce(&[u8]) -> R>(&self, f: F) -> R {

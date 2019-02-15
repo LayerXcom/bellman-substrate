@@ -62,3 +62,29 @@ pub fn verify_proof<'a, E: Engine>(
         ].into_iter())
     ).unwrap() == pvk.alpha_g1_beta_g2)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;    
+    use super::super::dummy_engine::{self, Fr};
+
+    #[test]
+    fn test_verify() {
+        let pvk = PreparedVerifyingKey {
+        alpha_g1_beta_g2: Fr(18634),
+        neg_gamma_g2: Fr(11181),
+        neg_delta_g2: Fr(59032),
+        ic: [Fr(14034), Fr(58774)]
+    };
+
+    let proof = Proof {
+        a: Fr(3269), 
+        b: Fr(471), 
+        c: Fr(8383),
+    };
+
+    let pub_inp = [Fr(1); 1];
+
+    verify_proof::<'a, Bls12>(&pvk, &proof, &pub_inp)
+    }
+}

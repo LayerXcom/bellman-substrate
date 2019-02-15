@@ -12,14 +12,13 @@ use pairing::{
     EncodedPoint
 };
 
-use rstd::cmp::Ordering;
+use rstd::{cmp::Ordering, num::Wrapping};
 #[cfg(feature = "std")]
 use std::fmt;
 #[cfg(not(feature = "std"))]
 use core::fmt;
 use rand::{Rand, Rng};
-use rstd::num::Wrapping;
-use codec::{Encode, Decode, Input, Output};
+use parity_codec::{Encode, Decode, Input, Output};
 
 const MODULUS_R: Wrapping<u32> = Wrapping(64513);
 

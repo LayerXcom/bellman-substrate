@@ -20,6 +20,7 @@ use rstd::prelude::*;
 use std::{io, fmt::{self, Debug}, error::Error};
 
 mod verifier;
+mod dummy_engine;
 
 pub use self::verifier::*;
 pub use pairing::utils::*;

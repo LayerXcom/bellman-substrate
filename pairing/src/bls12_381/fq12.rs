@@ -3,6 +3,7 @@ use super::fq2::Fq2;
 use super::fq6::Fq6;
 use rand::{Rand, Rng};
 use Field;
+use core::fmt;
 
 /// An element of Fq12, represented by c0 + c1 * w.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Encode, Decode, Default)]
@@ -11,8 +12,8 @@ pub struct Fq12 {
     pub c1: Fq6,
 }
 
-impl ::std::fmt::Display for Fq12 {
-    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+impl fmt::Display for Fq12 {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Fq12({} + {} * w)", self.c0, self.c1)
     }
 }

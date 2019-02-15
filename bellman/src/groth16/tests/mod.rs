@@ -391,6 +391,9 @@ fn test_xordemo() {
 
         assert_eq!(expected_c, proof.c);
     }
+    println!("pvk: {:?}", pvk);
+    println!("proof: {:?}", proof);
+    println!("public input: {:?}", [Fr::one()]);
 
     assert!(verify_proof(
         &pvk,

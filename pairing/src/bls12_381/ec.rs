@@ -16,10 +16,10 @@ macro_rules! curve_impl {
             pub(crate) y: $basefield,
             pub(crate) infinity: bool
         }
-
-        impl ::std::fmt::Display for $affine
+        
+        impl fmt::Display for $affine
         {
-            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
                 if self.infinity {
                     write!(f, "{}(Infinity)", $name)
                 } else {
@@ -34,10 +34,10 @@ macro_rules! curve_impl {
            pub(crate) y: $basefield,
            pub(crate) z: $basefield
         }
-
-        impl ::std::fmt::Display for $projective
+        
+        impl fmt::Display for $projective
         {
-            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
                 write!(f, "{}", self.into_affine())
             }
         }
@@ -245,6 +245,8 @@ macro_rules! curve_impl {
 
             fn batch_normalization(v: &mut [Self])
             {
+                #[cfg(not(feature = "std"))]
+                use alloc::vec::Vec;
                 // Montgomery’s Trick and Fast Implementation of Masked AES
                 // Genelle, Prouff and Quisquater
                 // Section 3.2
@@ -623,9 +625,11 @@ macro_rules! curve_impl {
 pub mod g1 {
     use super::super::{Bls12, Fq, Fq12, FqRepr, Fr, FrRepr};
     use super::g2::G2Affine;
-    use rand::{Rand, Rng};
+    use rand::{Rand, Rng};   
     #[cfg(feature = "std")]
     use std::fmt;
+    #[cfg(not(feature = "std"))] 
+    use core::fmt;    
     use {
         BitIterator, CurveAffine, CurveProjective, EncodedPoint, Engine, Field, GroupDecodingError,
         PrimeField, PrimeFieldRepr, SqrtField,
@@ -1296,12 +1300,15 @@ pub mod g2 {
     use rand::{Rand, Rng};
     #[cfg(feature = "std")]
     use std::fmt;
+    #[cfg(not(feature = "std"))]
+    use core::fmt;
     use {
         BitIterator, CurveAffine, CurveProjective, EncodedPoint, Engine, Field, GroupDecodingError,
         PrimeField, PrimeFieldRepr, SqrtField,
     };
     #[cfg(not(feature = "std"))]
     use core::result::Result;
+    use rstd::vec::Vec;
 
     curve_impl!(
         "G2",

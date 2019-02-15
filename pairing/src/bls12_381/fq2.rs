@@ -1,8 +1,8 @@
 use super::fq::{FROBENIUS_COEFF_FQ2_C1, Fq, NEGATIVE_ONE};
 use rand::{Rand, Rng};
 use {Field, SqrtField};
-
-use std::cmp::Ordering;
+use core::fmt;
+use rstd::cmp::Ordering;
 
 /// An element of Fq2, represented by c0 + c1 * u.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Encode, Decode, Default)]
@@ -11,8 +11,9 @@ pub struct Fq2 {
     pub c1: Fq,
 }
 
-impl ::std::fmt::Display for Fq2 {
-    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+
+impl fmt::Display for Fq2 {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Fq2({} + {} * u)", self.c0, self.c1)
     }
 }

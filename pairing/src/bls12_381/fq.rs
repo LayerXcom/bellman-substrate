@@ -1,6 +1,10 @@
 use super::fq2::Fq2;
-use std::cmp::Ordering;
+use rstd::cmp::Ordering;
+use rstd::mem;
 use {Field, PrimeField, PrimeFieldDecodingError, PrimeFieldRepr, SqrtField};
+use core::fmt;
+#[cfg(not(feature = "std"))]
+use alloc::string::ToString;
 
 // q = 4002409555221667393417789825735904156556882819939007885332058136124031650490837864442687629129015664037894272559787
 const MODULUS: FqRepr = FqRepr([
@@ -517,8 +521,8 @@ impl ::rand::Rand for FqRepr {
     }
 }
 
-impl ::std::fmt::Display for FqRepr {
-    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+impl fmt::Display for FqRepr {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         try!(write!(f, "0x"));
         for i in self.0.iter().rev() {
             try!(write!(f, "{:016x}", *i));
@@ -599,7 +603,7 @@ impl PrimeFieldRepr for FqRepr {
         while n >= 64 {
             let mut t = 0;
             for i in self.0.iter_mut().rev() {
-                ::std::mem::swap(&mut t, i);
+                mem::swap(&mut t, i);
             }
             n -= 64;
         }
@@ -647,7 +651,7 @@ impl PrimeFieldRepr for FqRepr {
         while n >= 64 {
             let mut t = 0;
             for i in &mut self.0 {
-                ::std::mem::swap(&mut t, i);
+                mem::swap(&mut t, i);
             }
             n -= 64;
         }
@@ -714,8 +718,8 @@ impl PartialOrd for Fq {
     }
 }
 
-impl ::std::fmt::Display for Fq {
-    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+impl fmt::Display for Fq {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Fq({})", self.into_repr())
     }
 }

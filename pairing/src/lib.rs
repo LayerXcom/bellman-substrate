@@ -4,15 +4,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(not(feature = "std"), feature(alloc))]
 
-#![cfg_attr(feature = "clippy", deny(warnings))]
-#![cfg_attr(feature = "clippy", feature(plugin))]
-#![cfg_attr(feature = "clippy", plugin(clippy))]
-#![cfg_attr(feature = "clippy", allow(inline_always))]
-#![cfg_attr(feature = "clippy", allow(too_many_arguments))]
-#![cfg_attr(feature = "clippy", allow(unreadable_literal))]
-#![cfg_attr(feature = "clippy", allow(many_single_char_names))]
-#![cfg_attr(feature = "clippy", allow(new_without_default_derive))]
-#![cfg_attr(feature = "clippy", allow(write_literal))]
 // Force public structures to implement Debug
 #![deny(missing_debug_implementations)]
 
@@ -28,6 +19,11 @@ extern crate parity_codec_derive;
 // #[macro_use]
 // extern crate serde_derive;
 extern crate sr_std as rstd;
+
+#[cfg(not(feature = "std"))]
+#[macro_use]
+extern crate alloc;
+#[cfg(feature = "std")]
 extern crate core;
 #[cfg(test)]
 pub mod tests;
@@ -37,12 +33,13 @@ pub mod utils;
 mod wnaf;
 pub use self::wnaf::Wnaf;
 
+#[cfg(not(feature = "std"))]
+use rstd::alloc::string::String;
 #[cfg(feature = "std")]
 use std::error::Error;
-#[cfg(feature = "std")]
-use std::fmt::{self, Debug};
-// #[cfg(feature = "std")]
-// use std::io::{self, Read, Write};
+
+use core::fmt::{self, Debug};
+
 #[cfg(not(feature = "std"))]
 use core::convert::From;
 #[cfg(not(feature = "std"))]
@@ -360,12 +357,23 @@ pub trait SqrtField: Field {
     fn sqrt(&self) -> Option<Self>;
 }
 
-#[cfg_attr(feature = "std", derive(Debug))]
+// #[cfg_attr(feature = "std", derive(Debug))]
 pub enum IoError {
     Error,
     WriteZero,
     Infinity,
     Group(GroupDecodingError),
+}
+
+impl fmt::Debug for IoError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {            
+            IoError::Error => write!(f, "encountered an I/O error"),
+            IoError::WriteZero => write!(f, "failed to write whole buffer"),
+            IoError::Infinity => write!(f, "point at infinity"),
+            IoError::Group(ref err) => write!(f, "GroupDecodingError"),
+        }
+    }
 }
 
 impl IoError {    
@@ -562,7 +570,7 @@ pub enum GroupDecodingError {
     UnexpectedInformation,
 }
 
-#[cfg(feature = "std")]
+
 impl GroupDecodingError {
     fn description_str(&self) -> &'static str {
         match *self {

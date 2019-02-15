@@ -2,6 +2,7 @@ use super::fq::{FROBENIUS_COEFF_FQ6_C1, FROBENIUS_COEFF_FQ6_C2};
 use super::fq2::Fq2;
 use rand::{Rand, Rng};
 use Field;
+use core::fmt;
 
 /// An element of Fq6, represented by c0 + c1 * v + c2 * v^(2).
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Encode, Decode, Default)]
@@ -11,8 +12,8 @@ pub struct Fq6 {
     pub c2: Fq2,
 }
 
-impl ::std::fmt::Display for Fq6 {
-    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+impl fmt::Display for Fq6 {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Fq6({} + {} * v, {} * v^2)", self.c0, self.c1, self.c2)
     }
 }
@@ -30,7 +31,7 @@ impl Rand for Fq6 {
 impl Fq6 {
     /// Multiply by quadratic nonresidue v.
     pub fn mul_by_nonresidue(&mut self) {
-        use std::mem::swap;
+        use rstd::mem::swap;
         swap(&mut self.c0, &mut self.c1);
         swap(&mut self.c0, &mut self.c2);
 

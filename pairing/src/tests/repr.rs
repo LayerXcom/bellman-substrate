@@ -1,5 +1,6 @@
 use rand::{SeedableRng, XorShiftRng};
 use PrimeFieldRepr;
+use rstd::vec::Vec;
 
 pub fn random_repr_tests<R: PrimeFieldRepr>() {
     random_encoding_tests::<R>();
@@ -30,7 +31,7 @@ fn random_encoding_tests<R: PrimeFieldRepr>() {
 
             let mut v: Vec<u8> = vec![];
             r.write_le(&mut v).unwrap();
-            rdecoded.read_le(&v[0..]).unwrap();
+            rdecoded.read_le(&mut v[0..]).unwrap();
 
             assert_eq!(r, rdecoded);
         }
@@ -43,7 +44,7 @@ fn random_encoding_tests<R: PrimeFieldRepr>() {
             r.write_le(&mut v).unwrap();
 
             // This reads in little-endian, so we are done.
-            rdecoded_le.read_le(&v[..]).unwrap();
+            rdecoded_le.read_le(&mut v[..]).unwrap();
 
             // This reads in big-endian, so we perform a swap of the
             // bytes beforehand.

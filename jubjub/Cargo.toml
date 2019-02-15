@@ -1,0 +1,29 @@
+[package]
+name = "jubjub"
+version = "0.1.0"
+authors = ["osuke <dish230@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+rstd = { package = "sr-std", git = "https://github.com/paritytech/substrate", default-features = false }
+pairing = { path = "../pairing", default-features = false }
+byteorder = { version = "1", default-features = false }
+rand = { version = "0.4", default-features = false }
+parity-codec-derive = { version = "3.0", default-features = false }
+parity-codec = { version = "3.0", default-features = false}
+
+[dependencies.blake2-rfc]
+git = "https://github.com/gtank/blake2-rfc"
+rev = "7a5b5fc99ae483a0043db7547fb79a6fa44b88a9"
+default-features = false
+
+[features]
+default = ["std"]
+std = [
+    "rstd/std",
+    "pairing/std",
+    "byteorder/std",
+    "rand/std",
+    "parity-codec/std",    
+    "parity-codec-derive/std",
+]

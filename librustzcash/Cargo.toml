@@ -5,7 +5,8 @@ authors = [
     "Sean Bowe <ewillbefull@gmail.com>",
     "Jack Grigg <jack@z.cash>",
     "Jay Graber <jay@z.cash>",
-    "Simon Liu <simon@z.cash>"
+    "Simon Liu <simon@z.cash>",
+    "Osuke Sudo <dish230@gmail.com>",
     ]
 
 [lib]

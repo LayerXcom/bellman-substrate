@@ -1,11 +1,11 @@
 [package]
-authors = ["Sean Bowe <ewillbefull@gmail.com>"]
+authors = [
+    "Sean Bowe <ewillbefull@gmail.com>",
+    "Osuke Sudo <dish230@gmail.com>",
+]
 description = "zk-SNARK library"
-documentation = "https://github.com/ebfull/bellman"
-homepage = "https://github.com/ebfull/bellman"
 license = "MIT/Apache-2.0"
 name = "bellman"
-repository = "https://github.com/ebfull/bellman"
 version = "0.1.0"
 
 [dependencies]

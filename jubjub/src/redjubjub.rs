@@ -1,30 +1,25 @@
 //! Implementation of RedJubjub, a specialization of RedDSA to the Jubjub curve.
 //! See section 5.4.6 of the Sapling protocol specification.
 
-use pairing::{Field, PrimeField, PrimeFieldRepr};
+use pairing::{Field, PrimeField, PrimeFieldRepr, IoError, utils::{Write, Read}};
 use rand::{Rng, Rand};
 use rstd::prelude::*;
 
-#[cfg(feature = "std")]
-use std::io::{self, Read, Write};
 
 use crate::jubjub::{FixedGenerators, JubjubEngine, JubjubParams, Unknown, edwards::Point};
 use crate::util::{hash_to_scalar};
 
-fn read_scalar<E: JubjubEngine, R: Read>(reader: R) -> io::Result<E::Fs> {
+fn read_scalar<E: JubjubEngine>(reader: &[u8]) -> Result<E::Fs, IoError> {
     let mut s_repr = <E::Fs as PrimeField>::Repr::default();
     s_repr.read_le(reader)?;
 
     match E::Fs::from_repr(s_repr) {
         Ok(s) => Ok(s),
-        Err(_) => Err(io::Error::new(
-            io::ErrorKind::InvalidInput,
-            "scalar is not in field",
-        )),
+        Err(_) => Err(IoError::NotInField),
     }
 }
 
-fn write_scalar<E: JubjubEngine, W: Write>(s: &E::Fs, writer: W) -> io::Result<()> {
+fn write_scalar<E: JubjubEngine>(s: &E::Fs, writer: &mut [u8]) -> Result<(), IoError> {
     s.into_repr().write_le(writer)
 }
 
@@ -46,7 +41,7 @@ pub struct PrivateKey<E: JubjubEngine>(pub E::Fs);
 pub struct PublicKey<E: JubjubEngine>(pub Point<E, Unknown>);
 
 impl Signature {
-    pub fn read<R: Read>(mut reader: R) -> io::Result<Self> {
+    pub fn read(mut reader: &[u8]) -> Result<Self, IoError> {
         let mut rbar = [0u8; 32];
         let mut sbar = [0u8; 32];
         reader.read_exact(&mut rbar)?;
@@ -54,7 +49,7 @@ impl Signature {
         Ok(Signature { rbar, sbar })
     }
 
-    pub fn write<W: Write>(&self, mut writer: W) -> io::Result<()> {
+    pub fn write(&self, writer: &mut Vec<u8>) -> Result<(), IoError> {
         writer.write_all(&self.rbar)?;
         writer.write_all(&self.sbar)
     }
@@ -67,13 +62,13 @@ impl<E: JubjubEngine> PrivateKey<E> {
         PrivateKey(tmp)
     }
 
-    pub fn read<R: Read>(reader: R) -> io::Result<Self> {
-        let pk = read_scalar::<E, R>(reader)?;
+    pub fn read(reader: &[u8]) -> Result<Self, IoError> {
+        let pk = read_scalar::<E>(reader)?;
         Ok(PrivateKey(pk))
     }
 
-    pub fn write<W: Write>(&self, writer: W) -> io::Result<()> {
-        write_scalar::<E, W>(&self.0, writer)
+    pub fn write(&self, writer: &mut Vec<u8>) -> Result<(), IoError> {
+        write_scalar::<E>(&self.0, writer)
     }
 
     pub fn sign<R: Rng>(
@@ -102,7 +97,7 @@ impl<E: JubjubEngine> PrivateKey<E> {
         s.mul_assign(&self.0);
         s.add_assign(&r);
         let mut sbar = [0u8; 32];
-        write_scalar::<E, &mut [u8]>(&s, &mut sbar[..])
+        write_scalar::<E>(&s, &mut sbar[..])
             .expect("Jubjub scalars should serialize to 32 bytes");
 
         Signature { rbar, sbar }
@@ -121,12 +116,12 @@ impl<E: JubjubEngine> PublicKey<E> {
         PublicKey(res)
     }
 
-    pub fn read<R: Read>(reader: R, params: &E::Params) -> io::Result<Self> {
+    pub fn read(reader: &[u8], params: &E::Params) -> Result<Self, IoError> {
         let p = Point::read(reader, params)?;
         Ok(PublicKey(p))
     }
 
-    pub fn write<W: Write>(&self, writer: W) -> io::Result<()> {
+    pub fn write(&self, writer: &mut Vec<u8>) -> Result<(), IoError> {
         self.0.write(writer)
     }
 
@@ -148,7 +143,7 @@ impl<E: JubjubEngine> PublicKey<E> {
         };
         // S < order(G)
         // (E::Fs guarantees its representation is in the field)
-        let s = match read_scalar::<E, &[u8]>(&sig.sbar[..]) {
+        let s = match read_scalar::<E>(&sig.sbar[..]) {
             Ok(s) => s,
             Err(_) => return false,
         };
@@ -182,7 +177,7 @@ pub fn batch_verify<'a, E: JubjubEngine, R: Rng>(
             Ok(r) => r,
             Err(_) => return false,
         };
-        let mut s = match read_scalar::<E, &[u8]>(&entry.sig.sbar[..]) {
+        let mut s = match read_scalar::<E>(&entry.sig.sbar[..]) {
             Ok(s) => s,
             Err(_) => return false,
         };
@@ -213,7 +208,7 @@ mod tests {
     use pairing::bls12_381::Bls12;
     use rand::thread_rng;
 
-    use jubjub::{JubjubBls12, fs::Fs, edwards};
+    use crate::jubjub::{JubjubBls12, fs::Fs, edwards};
 
     use super::*;
 
@@ -291,21 +286,25 @@ mod tests {
             let msg = b"Foo bar";
             let sig = sk.sign(msg, rng, p_g, params);
 
-            let mut sk_bytes = [0u8; 32];
-            let mut vk_bytes = [0u8; 32];
-            let mut sig_bytes = [0u8; 64];
-            sk.write(&mut sk_bytes[..]).unwrap();
-            vk.write(&mut vk_bytes[..]).unwrap();
-            sig.write(&mut sig_bytes[..]).unwrap();
+            // let mut sk_bytes = [0u8; 32];
+            // let mut vk_bytes = [0u8; 32];
+            // let mut sig_bytes = [0u8; 64];
+            
+            let mut sk_bytes = vec![0; 32];
+            let mut vk_bytes = vec![0; 32];
+            let mut sig_bytes = vec![0; 64];
+            sk.write(&mut sk_bytes).unwrap();
+            vk.write(&mut vk_bytes).unwrap();
+            sig.write(&mut sig_bytes).unwrap();
 
-            let sk_2 = PrivateKey::<Bls12>::read(&sk_bytes[..]).unwrap();
+            let sk_2 = PrivateKey::<Bls12>::read(&sk_bytes).unwrap();
             let vk_2 = PublicKey::from_private(&sk_2, p_g, params);
-            let mut vk_2_bytes = [0u8; 32];
-            vk_2.write(&mut vk_2_bytes[..]).unwrap();
+            let mut vk_2_bytes = vec![0; 32];
+            vk_2.write(&mut vk_2_bytes).unwrap();
             assert!(vk_bytes == vk_2_bytes);
 
-            let vk_2 = PublicKey::<Bls12>::read(&vk_bytes[..], params).unwrap();
-            let sig_2 = Signature::read(&sig_bytes[..]).unwrap();
+            let vk_2 = PublicKey::<Bls12>::read(&vk_bytes, params).unwrap();
+            let sig_2 = Signature::read(&sig_bytes).unwrap();
             assert!(vk.verify(msg, &sig_2, p_g, params));
             assert!(vk_2.verify(msg, &sig, p_g, params));
             assert!(vk_2.verify(msg, &sig_2, p_g, params));

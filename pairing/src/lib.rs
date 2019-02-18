@@ -364,6 +364,9 @@ pub enum IoError {
     WriteZero,
     Infinity,
     Group(GroupDecodingError),
+    NotInField,
+    NotOnCurve,
+    NotYInField,
 }
 
 impl fmt::Debug for IoError {
@@ -373,6 +376,9 @@ impl fmt::Debug for IoError {
             IoError::WriteZero => write!(f, "failed to write whole buffer"),
             IoError::Infinity => write!(f, "point at infinity"),
             IoError::Group(ref err) => write!(f, "GroupDecodingError"),
+            IoError::NotInField => write!(f, "scalar is not in field"),
+            IoError::NotOnCurve => write!(f, "not on curve"),
+            IoError::NotYInField => write!(f, "y is not in field"),
         }
     }
 }
@@ -383,7 +389,10 @@ impl IoError {
             IoError::Error => "encountered an I/O error",   
             IoError::WriteZero => "failed to write whole buffer",
             IoError::Infinity => "point at infinity", 
-            IoError::Group(ref err) => err.description_str(),        
+            IoError::Group(ref err) => err.description_str(),       
+            IoError::NotInField => "scalar is not in field", 
+            IoError::NotOnCurve => "not on curve",
+            IoError::NotYInField => "y is not in field",
         }
     }
 }
@@ -752,10 +761,10 @@ fn test_bit_iterator() {
     assert!(a.next().is_none());
 }
 
-#[cfg(not(feature = "expose-arith"))]
-use self::arith_impl::*;
+// #[cfg(not(feature = "expose-arith"))]
+// use self::arith_impl::*;
 
-#[cfg(feature = "expose-arith")]
+// #[cfg(feature = "expose-arith")]
 pub use self::arith_impl::*;
 
 #[cfg(feature = "u128-support")]

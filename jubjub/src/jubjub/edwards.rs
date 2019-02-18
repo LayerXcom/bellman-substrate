@@ -3,7 +3,9 @@ use pairing::{
     SqrtField,
     PrimeField,
     PrimeFieldRepr,
-    BitIterator
+    BitIterator,
+    IoError,
+    utils::{Write, Read},
 };
 
 use super::{
@@ -19,15 +21,7 @@ use rand::{
 };
 
 use rstd::prelude::*;
-#[cfg(feature = "std")]
-use std::marker::PhantomData;
-
-#[cfg(feature = "std")]
-use std::io::{
-    self,
-    Write,
-    Read
-};
+use rstd::marker::PhantomData;
 
 #[cfg(feature = "std")]
 use std::fmt::Debug;
@@ -98,10 +92,10 @@ impl<E: JubjubEngine, Subgroup> PartialEq for Point<E, Subgroup> {
 }
 
 impl<E: JubjubEngine> Point<E, Unknown> {
-    pub fn read<R: Read>(
-        reader: R,
+    pub fn read(
+        reader: &[u8],
         params: &E::Params
-    ) -> io::Result<Self>
+    ) -> Result<Self, IoError>
     {
         let mut y_repr = <E::Fr as PrimeField>::Repr::default();
         y_repr.read_le(reader)?;
@@ -114,12 +108,12 @@ impl<E: JubjubEngine> Point<E, Unknown> {
                 match Self::get_for_y(y, x_sign, params) {
                     Some(p) => Ok(p),
                     None => {
-                        Err(io::Error::new(io::ErrorKind::InvalidInput, "not on curve"))
+                        Err(IoError::NotOnCurve)
                     }
                 }
             },
             Err(_) => {
-                Err(io::Error::new(io::ErrorKind::InvalidInput, "y is not in field"))
+                Err(IoError::NotYInField)
             }
         }
     }
@@ -195,10 +189,10 @@ impl<E: JubjubEngine> Point<E, Unknown> {
 }
 
 impl<E: JubjubEngine, Subgroup> Point<E, Subgroup> {
-    pub fn write<W: Write>(
+    pub fn write(
         &self,
-        writer: W
-    ) -> io::Result<()>
+        writer: &mut [u8]
+    ) -> Result<(), IoError>
     {
         let (x, y) = self.into_xy();
 

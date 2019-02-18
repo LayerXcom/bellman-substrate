@@ -13,11 +13,6 @@ extern crate rand;
 extern crate parity_codec as codec;
 #[macro_use]
 extern crate parity_codec_derive;
-// #[cfg(feature = "std")]
-// extern crate serde;
-// #[cfg(feature = "std")]
-// #[macro_use]
-// extern crate serde_derive;
 extern crate sr_std as rstd;
 
 #[cfg(not(feature = "std"))]
